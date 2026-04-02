@@ -622,10 +622,59 @@ let data = {
   compras: [],
   ventas: [],
   pagos: [],
-  clientes: {} // { name: { tipo, saldo, telefono } }
+  clientes: {}
 };
 
-// Load from memory
+// ═══════════ GOOGLE SHEETS API ═══════════
+// IMPORTANTE: Reemplaza esta URL con la de tu implementación de Apps Script
+const API_URL = 'https://script.google.com/macros/s/AKfycbyY3SUktdsbMDd_puANcLcNhlBtSNLlkcVHQS_rWxnEHgx1cvpfQuG0iB7DusR76NERvw/exec';
+
+let syncing = false;
+
+async function apiCall(action, extraData) {
+  try {
+    let url = API_URL + '?action=' + action;
+    if (extraData) url += '&data=' + encodeURIComponent(JSON.stringify(extraData));
+    const res = await fetch(url);
+    return await res.json();
+  } catch (err) {
+    console.error('API Error:', err);
+    return null;
+  }
+}
+
+async function loadFromSheets() {
+  showSyncIndicator('Cargando...');
+  const result = await apiCall('read');
+  if (result && !result.error) {
+    data.compras = result.compras || [];
+    data.ventas = result.ventas || [];
+    data.pagos = result.pagos || [];
+    data.clientes = result.clientes || {};
+    // Also save locally as cache
+    try { localStorage.setItem('micentral_data', JSON.stringify(data)); } catch(e) {}
+    renderDashboard();
+  }
+  hideSyncIndicator();
+}
+
+function showSyncIndicator(msg) {
+  let el = document.getElementById('sync-indicator');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sync-indicator';
+    el.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);background:var(--surface2);color:var(--green);padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;z-index:999;border:1px solid var(--green-border);';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg || 'Sincronizando...';
+  el.style.display = 'block';
+}
+function hideSyncIndicator() {
+  const el = document.getElementById('sync-indicator');
+  if (el) setTimeout(() => el.style.display = 'none', 800);
+}
+
+// Load from localStorage first (instant), then sync from Sheets
 try {
   const saved = localStorage.getItem('micentral_data');
   if (saved) data = JSON.parse(saved);
@@ -633,6 +682,13 @@ try {
 
 function save() {
   try { localStorage.setItem('micentral_data', JSON.stringify(data)); } catch(e) {}
+}
+
+// Auto-sync from sheets on load
+if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+  setTimeout(loadFromSheets, 500);
+  // Auto-refresh every 30 seconds
+  setInterval(loadFromSheets, 30000);
 }
 
 // ═══════════ DATE ═══════════
@@ -720,17 +776,23 @@ function saveCompra() {
   const precio = parseFloat(document.getElementById('compra-precio').value) || 0;
   if (!producto || !cantidad || !precio) return alert('Completa todos los campos');
 
-  data.compras.push({
+  const row = {
     id: Date.now(),
     fecha: new Date().toISOString(),
     dia: todayStr(),
     proveedor, producto, cantidad, precio,
     total: cantidad * precio
-  });
+  };
+  data.compras.push(row);
   save();
   closeModal();
   clearForm('compra');
   renderDashboard();
+  // Sync to Sheets
+  if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+    showSyncIndicator('Guardando...');
+    apiCall('addCompra', row).then(hideSyncIndicator);
+  }
 }
 
 function saveVenta() {
@@ -740,7 +802,6 @@ function saveVenta() {
   const total = parseFloat(document.getElementById('venta-total').value) || 0;
   if (!cliente || !producto || !total) return alert('Completa todos los campos');
 
-  // Ensure client exists
   if (!data.clientes[cliente]) {
     data.clientes[cliente] = { tipo: currentClientType, saldo: 0 };
   }
@@ -750,18 +811,27 @@ function saveVenta() {
     data.clientes[cliente].saldo += total;
   }
 
-  data.ventas.push({
+  const row = {
     id: Date.now(),
     fecha: new Date().toISOString(),
     dia: todayStr(),
     cliente, producto, cantidad, total,
     tipo_cliente: currentClientType,
     status: currentPayStatus
-  });
+  };
+  data.ventas.push(row);
   save();
   closeModal();
   clearForm('venta');
   renderDashboard();
+  // Sync to Sheets
+  if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+    showSyncIndicator('Guardando...');
+    Promise.all([
+      apiCall('addVenta', row),
+      apiCall('updateCliente', { nombre: cliente, tipo: data.clientes[cliente].tipo, saldo: data.clientes[cliente].saldo })
+    ]).then(hideSyncIndicator);
+  }
 }
 
 function savePago() {
@@ -774,16 +844,25 @@ function savePago() {
   }
   data.clientes[cliente].saldo = Math.max(0, data.clientes[cliente].saldo - monto);
 
-  data.pagos.push({
+  const row = {
     id: Date.now(),
     fecha: new Date().toISOString(),
     dia: todayStr(),
     cliente, monto
-  });
+  };
+  data.pagos.push(row);
   save();
   closeModal();
   clearForm('pago');
   renderDashboard();
+  // Sync to Sheets
+  if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+    showSyncIndicator('Guardando...');
+    Promise.all([
+      apiCall('addPago', row),
+      apiCall('updateCliente', { nombre: cliente, tipo: data.clientes[cliente].tipo, saldo: data.clientes[cliente].saldo })
+    ]).then(hideSyncIndicator);
+  }
 }
 
 function clearForm(type) {
