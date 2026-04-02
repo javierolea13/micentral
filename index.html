@@ -747,6 +747,10 @@ async function loadFromSheets() {
     data.ventas = result.ventas || [];
     data.pagos = result.pagos || [];
     data.clientes = result.clientes || {};
+    if (result.productos && result.productos.length > 0) {
+      productos = result.productos;
+      saveProductos();
+    }
     // Also save locally as cache
     try { localStorage.setItem('micentral_data', JSON.stringify(data)); } catch(e) {}
     renderDashboard();
@@ -886,6 +890,8 @@ function confirmAddProduct() {
   if (!productos.includes(name)) {
     productos.push(name);
     saveProductos();
+    // Save to Sheet
+    fetch(API_URL + '?action=addProducto&nombre=' + encodeURIComponent(name)).catch(() => {});
   }
   // Refresh all product selects
   document.querySelectorAll('[id^="vl-prod-"]').forEach(sel => {
@@ -1217,27 +1223,34 @@ function renderTxItem(tx) {
 // ═══════════ DELETE TRANSACTION ═══════════
 function deleteTx(type, id) {
   if (!confirm('¿Eliminar este movimiento?')) return;
+  showSyncIndicator('Eliminando...');
+  
+  const sheetMap = { compra: 'Compras', venta: 'Ventas', pago: 'Pagos' };
+  
   if (type === 'compra') {
     data.compras = data.compras.filter(c => c.id !== id);
   } else if (type === 'venta') {
     const venta = data.ventas.find(v => v.id === id);
     if (venta && venta.status === 'fiado' && data.clientes[venta.cliente]) {
       data.clientes[venta.cliente].saldo = Math.max(0, data.clientes[venta.cliente].saldo - venta.total);
-      if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
-        apiCall('updateCliente', { nombre: venta.cliente, tipo: data.clientes[venta.cliente].tipo, saldo: data.clientes[venta.cliente].saldo });
-      }
+      apiCall('updateCliente', { nombre: venta.cliente, tipo: data.clientes[venta.cliente].tipo, saldo: data.clientes[venta.cliente].saldo });
     }
     data.ventas = data.ventas.filter(v => v.id !== id);
   } else if (type === 'pago') {
     const pago = data.pagos.find(p => p.id === id);
     if (pago && data.clientes[pago.cliente]) {
       data.clientes[pago.cliente].saldo += pago.monto;
-      if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
-        apiCall('updateCliente', { nombre: pago.cliente, tipo: data.clientes[pago.cliente].tipo, saldo: data.clientes[pago.cliente].saldo });
-      }
+      apiCall('updateCliente', { nombre: pago.cliente, tipo: data.clientes[pago.cliente].tipo, saldo: data.clientes[pago.cliente].saldo });
     }
     data.pagos = data.pagos.filter(p => p.id !== id);
   }
+  
+  // Delete from Sheet
+  fetch(API_URL + '?action=deleteRow&sheet=' + sheetMap[type] + '&id=' + id)
+    .then(r => r.json())
+    .then(r => { hideSyncIndicator(); })
+    .catch(() => hideSyncIndicator());
+  
   save();
   renderDashboard();
   renderAllTx();
@@ -1334,6 +1347,21 @@ function saveEdit() {
   }
   save();
   closeEditModal();
+  
+  // Sync edit to Sheet
+  const sheetMap = { compra: 'Compras', venta: 'Ventas', pago: 'Pagos' };
+  let editedTx;
+  if (type === 'compra') editedTx = data.compras.find(c => c.id === id);
+  else if (type === 'venta') editedTx = data.ventas.find(v => v.id === id);
+  else editedTx = data.pagos.find(p => p.id === id);
+  if (editedTx) {
+    showSyncIndicator('Guardando...');
+    fetch(API_URL + '?action=editRow&sheet=' + sheetMap[type] + '&data=' + encodeURIComponent(JSON.stringify(editedTx)))
+      .then(r => r.json())
+      .then(() => hideSyncIndicator())
+      .catch(() => hideSyncIndicator());
+  }
+  
   renderDashboard();
   renderAllTx();
   renderAllClients();
