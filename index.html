@@ -532,11 +532,6 @@ body {
       <div class="sub" id="sum-pollos-val-sub">hoy</div>
     </div>
   </div>
-
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title">Movimientos</div>
-
   <div class="section">
     <div class="section-header">
       <div class="section-title">Movimientos</div>
@@ -715,7 +710,6 @@ body {
         <input type="number" id="pago-monto" placeholder="$0" inputmode="decimal">
       </div>
       <div class="form-group">
-        <div class="form-group">
         <label>Cuenta</label>
         <input type="text" id="pago-cuenta" placeholder="efectivo, transferencia, etc.">
       </div>
@@ -1514,18 +1508,7 @@ function quickPago() {
   document.getElementById('detail-balance').textContent = fmt(data.clientes[name].saldo);
   renderDashboard();
 }
-  if (!data.clientes[name]) return;
-  data.clientes[name].saldo = Math.max(0, data.clientes[name].saldo - montoNum);
-  const row = { id: Date.now(), fecha: new Date().toISOString(), dia: todayStr(), cliente: name, monto: montoNum };
-  data.pagos.push(row);
-  save();
-  apiCall('addPago', row);
-  apiCall('updateCliente', { nombre: name, tipo: data.clientes[name].tipo, saldo: data.clientes[name].saldo });
-  showSyncIndicator('Guardando...');
-  setTimeout(hideSyncIndicator, 1500);
-  document.getElementById('detail-balance').textContent = fmt(data.clientes[name].saldo);
-  renderDashboard();
-}
+
 
 // ═══════════ INIT ═══════════
 renderDashboard();
