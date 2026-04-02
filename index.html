@@ -402,6 +402,87 @@ body {
   font-family: 'Outfit', sans-serif;
   font-size: 32px; font-weight: 900; color: var(--red);
 }
+
+/* ── Product Line Items ── */
+.line-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 8px;
+  position: relative;
+}
+.line-item .form-row { margin-bottom: 0; }
+.line-item .form-group { margin-bottom: 8px; }
+.line-item .line-subtotal {
+  text-align: right; font-size: 13px; color: var(--green);
+  font-weight: 600; margin-top: 4px;
+}
+.line-remove {
+  position: absolute; top: 8px; right: 8px;
+  background: var(--red-bg); border: 1px solid var(--red-border);
+  color: var(--red); border-radius: 8px;
+  width: 28px; height: 28px; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.btn-add-line {
+  width: 100%; padding: 10px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text2); font-size: 13px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer; margin-bottom: 8px;
+  transition: all 0.2s;
+}
+.btn-add-line:active { border-color: var(--green); color: var(--green); }
+
+/* ── Product Select ── */
+.product-select-wrap { position: relative; }
+.product-select-wrap select {
+  width: 100%; padding: 14px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text); font-size: 15px;
+  font-family: 'DM Sans', sans-serif;
+  appearance: none; cursor: pointer; outline: none;
+}
+.product-select-wrap select:focus { border-color: var(--green); }
+
+/* ── Tx Actions (edit/delete) ── */
+.tx-actions {
+  display: flex; gap: 6px; margin-top: 8px;
+}
+.tx-actions button {
+  padding: 4px 10px; border-radius: 6px;
+  font-size: 11px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  border: none; cursor: pointer;
+}
+.btn-edit {
+  background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border) !important;
+}
+.btn-delete {
+  background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border) !important;
+}
+
+/* ── Add Product Modal ── */
+.mini-modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 300; display: none; align-items: center; justify-content: center;
+}
+.mini-modal.show { display: flex; }
+.mini-modal-content {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px; width: 90%; max-width: 340px;
+}
+.mini-modal-content h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px; font-weight: 700; margin-bottom: 16px;
+}
 </style>
 </head>
 <body>
@@ -579,24 +660,16 @@ body {
         <button class="toggle-btn active" onclick="setClientType('clienta')">Clienta</button>
         <button class="toggle-btn" onclick="setClientType('mesa')">Mesa</button>
       </div>
-      <div class="form-group">
-        <label>Producto</label>
-        <input type="text" id="venta-producto" placeholder="¿Qué le vendiste?">
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Cantidad</label>
-          <input type="number" id="venta-cantidad" placeholder="0" inputmode="decimal">
-        </div>
-        <div class="form-group">
-          <label>Precio total</label>
-          <input type="number" id="venta-total" placeholder="$0" inputmode="decimal">
-        </div>
-      </div>
-      <div class="form-toggle">
+
+      <!-- LÍNEAS DE PRODUCTO -->
+      <div id="venta-lineas"></div>
+      <button type="button" class="btn-add-line" onclick="addVentaLine()">＋ Agregar otro producto</button>
+
+      <div class="form-toggle" style="margin-top:12px">
         <button class="toggle-btn active" onclick="setPayStatus('pagado')">✅ Pagado</button>
         <button class="toggle-btn" onclick="setPayStatus('fiado')">🔴 Fiado</button>
       </div>
+      <div id="venta-total-display" style="text-align:right;font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:var(--green);margin:8px 0;">Total: $0</div>
       <button class="btn-submit" onclick="saveVenta()">Registrar venta</button>
     </div>
 
@@ -613,6 +686,29 @@ body {
       </div>
       <button class="btn-submit" onclick="savePago()">Registrar pago</button>
     </div>
+  </div>
+</div>
+
+<!-- ═══════════ MINI MODAL: NUEVO PRODUCTO ═══════════ -->
+<div class="mini-modal" id="add-product-modal">
+  <div class="mini-modal-content">
+    <h3>Agregar producto</h3>
+    <div class="form-group">
+      <input type="text" id="new-product-name" placeholder="Nombre del producto">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-submit" style="flex:1;background:var(--surface3);color:var(--text2)" onclick="closeAddProduct()">Cancelar</button>
+      <button class="btn-submit" style="flex:1" onclick="confirmAddProduct()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: EDITAR MOVIMIENTO ═══════════ -->
+<div class="modal-overlay" id="edit-modal-overlay" onclick="if(event.target===this)closeEditModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 id="edit-modal-title">Editar movimiento</h2>
+    <div id="edit-modal-body"></div>
   </div>
 </div>
 
@@ -691,6 +787,115 @@ if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
   setInterval(loadFromSheets, 30000);
 }
 
+// ═══════════ PRODUCT LIST ═══════════
+let productos = ['Pollo'];
+try {
+  const savedP = localStorage.getItem('micentral_productos');
+  if (savedP) productos = JSON.parse(savedP);
+} catch(e) {}
+function saveProductos() {
+  try { localStorage.setItem('micentral_productos', JSON.stringify(productos)); } catch(e) {}
+}
+
+// ═══════════ VENTA LINE ITEMS ═══════════
+let ventaLines = [];
+let ventaLineCounter = 0;
+
+function getProductOptions() {
+  return productos.map(p => `<option value="${p}">${p}</option>`).join('') +
+    '<option value="__nuevo__">＋ Agregar producto...</option>';
+}
+
+function addVentaLine() {
+  const id = ventaLineCounter++;
+  ventaLines.push(id);
+  const container = document.getElementById('venta-lineas');
+  const div = document.createElement('div');
+  div.className = 'line-item';
+  div.id = 'venta-line-' + id;
+  div.innerHTML = `
+    <button class="line-remove" onclick="removeVentaLine(${id})">✕</button>
+    <div class="form-group">
+      <label>Producto</label>
+      <div class="product-select-wrap">
+        <select id="vl-prod-${id}" onchange="onProductSelect(this)">
+          <option value="" disabled selected>Seleccionar...</option>
+          ${getProductOptions()}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Cantidad</label>
+        <input type="number" id="vl-cant-${id}" placeholder="0" inputmode="decimal" oninput="calcLineSubtotal(${id})">
+      </div>
+      <div class="form-group">
+        <label>Precio unit.</label>
+        <input type="number" id="vl-precio-${id}" placeholder="$0" inputmode="decimal" oninput="calcLineSubtotal(${id})">
+      </div>
+    </div>
+    <div class="line-subtotal" id="vl-sub-${id}">Subtotal: $0</div>
+  `;
+  container.appendChild(div);
+  calcVentaTotal();
+}
+
+function removeVentaLine(id) {
+  ventaLines = ventaLines.filter(l => l !== id);
+  const el = document.getElementById('venta-line-' + id);
+  if (el) el.remove();
+  calcVentaTotal();
+}
+
+function calcLineSubtotal(id) {
+  const cant = parseFloat(document.getElementById('vl-cant-' + id).value) || 0;
+  const precio = parseFloat(document.getElementById('vl-precio-' + id).value) || 0;
+  document.getElementById('vl-sub-' + id).textContent = 'Subtotal: ' + fmt(cant * precio);
+  calcVentaTotal();
+}
+
+function calcVentaTotal() {
+  let total = 0;
+  ventaLines.forEach(id => {
+    const cant = parseFloat(document.getElementById('vl-cant-' + id)?.value) || 0;
+    const precio = parseFloat(document.getElementById('vl-precio-' + id)?.value) || 0;
+    total += cant * precio;
+  });
+  const el = document.getElementById('venta-total-display');
+  if (el) el.textContent = 'Total: ' + fmt(total);
+}
+
+function onProductSelect(sel) {
+  if (sel.value === '__nuevo__') {
+    sel.value = '';
+    openAddProduct();
+  }
+}
+
+function openAddProduct() {
+  document.getElementById('add-product-modal').classList.add('show');
+  document.getElementById('new-product-name').value = '';
+  document.getElementById('new-product-name').focus();
+}
+function closeAddProduct() {
+  document.getElementById('add-product-modal').classList.remove('show');
+}
+function confirmAddProduct() {
+  const name = document.getElementById('new-product-name').value.trim();
+  if (!name) return;
+  if (!productos.includes(name)) {
+    productos.push(name);
+    saveProductos();
+  }
+  // Refresh all product selects
+  document.querySelectorAll('[id^="vl-prod-"]').forEach(sel => {
+    const val = sel.value;
+    sel.innerHTML = '<option value="" disabled>Seleccionar...</option>' + getProductOptions();
+    sel.value = val || name;
+  });
+  closeAddProduct();
+}
+
 // ═══════════ DATE ═══════════
 function todayStr() {
   const d = new Date();
@@ -731,6 +936,12 @@ function openModal() {
   document.getElementById('modal-overlay').classList.add('show');
   setModalType('compra');
 }
+function openModalVenta() {
+  document.getElementById('modal-overlay').classList.add('show');
+  setModalType('venta');
+  // Auto-add first line
+  if (ventaLines.length === 0) addVentaLine();
+}
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('show');
 }
@@ -744,7 +955,11 @@ function setModalType(type) {
   document.getElementById('form-compra').style.display = type === 'compra' ? 'block' : 'none';
   document.getElementById('form-venta').style.display = type === 'venta' ? 'block' : 'none';
   document.getElementById('form-pago').style.display = type === 'pago' ? 'block' : 'none';
-  if (type === 'venta' || type === 'pago') updateClientSuggestions();
+  if (type === 'venta') {
+    if (ventaLines.length === 0) addVentaLine();
+    updateClientSuggestions();
+  }
+  if (type === 'pago') updateClientSuggestions();
 }
 function setClientType(type) {
   currentClientType = type;
@@ -797,10 +1012,20 @@ function saveCompra() {
 
 function saveVenta() {
   const cliente = document.getElementById('venta-cliente').value.trim();
-  const producto = document.getElementById('venta-producto').value.trim();
-  const cantidad = parseFloat(document.getElementById('venta-cantidad').value) || 0;
-  const total = parseFloat(document.getElementById('venta-total').value) || 0;
-  if (!cliente || !producto || !total) return alert('Completa todos los campos');
+  if (!cliente) return alert('Ingresa el nombre del cliente');
+  if (ventaLines.length === 0) return alert('Agrega al menos un producto');
+
+  // Collect lines
+  let totalGeneral = 0;
+  const lineas = [];
+  for (const id of ventaLines) {
+    const producto = document.getElementById('vl-prod-' + id)?.value;
+    const cantidad = parseFloat(document.getElementById('vl-cant-' + id)?.value) || 0;
+    const precio = parseFloat(document.getElementById('vl-precio-' + id)?.value) || 0;
+    if (!producto || !cantidad || !precio) return alert('Completa todos los campos de cada producto');
+    lineas.push({ producto, cantidad, precio, subtotal: cantidad * precio });
+    totalGeneral += cantidad * precio;
+  }
 
   if (!data.clientes[cliente]) {
     data.clientes[cliente] = { tipo: currentClientType, saldo: 0 };
@@ -808,30 +1033,37 @@ function saveVenta() {
 
   const esFiado = currentPayStatus === 'fiado';
   if (esFiado) {
-    data.clientes[cliente].saldo += total;
+    data.clientes[cliente].saldo += totalGeneral;
   }
 
-  const row = {
-    id: Date.now(),
-    fecha: new Date().toISOString(),
-    dia: todayStr(),
-    cliente, producto, cantidad, total,
-    tipo_cliente: currentClientType,
-    status: currentPayStatus
-  };
-  data.ventas.push(row);
+  // Create one venta row per line item
+  lineas.forEach(l => {
+    const row = {
+      id: Date.now() + Math.random(),
+      fecha: new Date().toISOString(),
+      dia: todayStr(),
+      cliente,
+      producto: l.producto,
+      cantidad: l.cantidad,
+      total: l.subtotal,
+      tipo_cliente: currentClientType,
+      status: currentPayStatus
+    };
+    data.ventas.push(row);
+    if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+      apiCall('addVenta', row);
+    }
+  });
+
+  if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+    showSyncIndicator('Guardando...');
+    apiCall('updateCliente', { nombre: cliente, tipo: data.clientes[cliente].tipo, saldo: data.clientes[cliente].saldo }).then(hideSyncIndicator);
+  }
+
   save();
   closeModal();
   clearForm('venta');
   renderDashboard();
-  // Sync to Sheets
-  if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
-    showSyncIndicator('Guardando...');
-    Promise.all([
-      apiCall('addVenta', row),
-      apiCall('updateCliente', { nombre: cliente, tipo: data.clientes[cliente].tipo, saldo: data.clientes[cliente].saldo })
-    ]).then(hideSyncIndicator);
-  }
 }
 
 function savePago() {
@@ -869,7 +1101,12 @@ function clearForm(type) {
   if (type === 'compra') {
     ['compra-proveedor','compra-producto','compra-cantidad','compra-precio'].forEach(id => document.getElementById(id).value = '');
   } else if (type === 'venta') {
-    ['venta-cliente','venta-producto','venta-cantidad','venta-total'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('venta-cliente').value = '';
+    document.getElementById('venta-lineas').innerHTML = '';
+    ventaLines = [];
+    ventaLineCounter = 0;
+    const td = document.getElementById('venta-total-display');
+    if (td) td.textContent = 'Total: $0';
   } else {
     ['pago-cliente','pago-monto'].forEach(id => document.getElementById(id).value = '');
   }
@@ -926,8 +1163,12 @@ function getAllTx() {
 }
 
 function renderTxItem(tx) {
+  const actions = `<div class="tx-actions">
+    <button class="btn-edit" onclick="editTx('${tx._type}',${tx.id})">Editar</button>
+    <button class="btn-delete" onclick="deleteTx('${tx._type}',${tx.id})">Eliminar</button>
+  </div>`;
   if (tx._type === 'compra') {
-    return `<div class="tx-item">
+    return `<div class="tx-item" style="flex-wrap:wrap">
       <div class="tx-left">
         <div class="tx-icon entrada">🛒</div>
         <div class="tx-info">
@@ -938,23 +1179,25 @@ function renderTxItem(tx) {
       <div class="tx-amount">
         <div class="amount amount-red">-${fmt(tx.total)}</div>
       </div>
+      ${actions}
     </div>`;
   } else if (tx._type === 'venta') {
-    return `<div class="tx-item">
+    return `<div class="tx-item" style="flex-wrap:wrap">
       <div class="tx-left">
         <div class="tx-icon venta">💰</div>
         <div class="tx-info">
           <h4>${tx.producto}</h4>
-          <p>${tx.cliente} · ${formatDate(tx.dia)}</p>
+          <p>${tx.cliente} · ${tx.cantidad || ''} × ${tx.cantidad ? fmt(tx.total / tx.cantidad) : ''} · ${formatDate(tx.dia)}</p>
         </div>
       </div>
       <div class="tx-amount">
         <div class="amount amount-green">+${fmt(tx.total)}</div>
         <span class="badge ${tx.status === 'pagado' ? 'badge-pagado' : 'badge-fiado'}">${tx.status === 'pagado' ? 'Pagado' : 'Fiado'}</span>
       </div>
+      ${actions}
     </div>`;
   } else {
-    return `<div class="tx-item">
+    return `<div class="tx-item" style="flex-wrap:wrap">
       <div class="tx-left">
         <div class="tx-icon pago">💵</div>
         <div class="tx-info">
@@ -966,8 +1209,134 @@ function renderTxItem(tx) {
         <div class="amount amount-orange">+${fmt(tx.monto)}</div>
         <span class="badge badge-abono">Abono</span>
       </div>
+      ${actions}
     </div>`;
   }
+}
+
+// ═══════════ DELETE TRANSACTION ═══════════
+function deleteTx(type, id) {
+  if (!confirm('¿Eliminar este movimiento?')) return;
+  if (type === 'compra') {
+    data.compras = data.compras.filter(c => c.id !== id);
+  } else if (type === 'venta') {
+    const venta = data.ventas.find(v => v.id === id);
+    if (venta && venta.status === 'fiado' && data.clientes[venta.cliente]) {
+      data.clientes[venta.cliente].saldo = Math.max(0, data.clientes[venta.cliente].saldo - venta.total);
+      if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+        apiCall('updateCliente', { nombre: venta.cliente, tipo: data.clientes[venta.cliente].tipo, saldo: data.clientes[venta.cliente].saldo });
+      }
+    }
+    data.ventas = data.ventas.filter(v => v.id !== id);
+  } else if (type === 'pago') {
+    const pago = data.pagos.find(p => p.id === id);
+    if (pago && data.clientes[pago.cliente]) {
+      data.clientes[pago.cliente].saldo += pago.monto;
+      if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+        apiCall('updateCliente', { nombre: pago.cliente, tipo: data.clientes[pago.cliente].tipo, saldo: data.clientes[pago.cliente].saldo });
+      }
+    }
+    data.pagos = data.pagos.filter(p => p.id !== id);
+  }
+  save();
+  renderDashboard();
+  renderAllTx();
+  renderAllClients();
+}
+
+// ═══════════ EDIT TRANSACTION ═══════════
+let editingTx = null;
+function editTx(type, id) {
+  let tx;
+  if (type === 'compra') tx = data.compras.find(c => c.id === id);
+  else if (type === 'venta') tx = data.ventas.find(v => v.id === id);
+  else tx = data.pagos.find(p => p.id === id);
+  if (!tx) return;
+  editingTx = { type, id, tx };
+
+  let body = '';
+  if (type === 'compra') {
+    body = `
+      <div class="form-group"><label>Proveedor</label><input type="text" id="edit-proveedor" value="${tx.proveedor || ''}"></div>
+      <div class="form-group"><label>Producto</label><input type="text" id="edit-producto" value="${tx.producto || ''}"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Cantidad</label><input type="number" id="edit-cantidad" value="${tx.cantidad || 0}" inputmode="decimal"></div>
+        <div class="form-group"><label>Precio unit.</label><input type="number" id="edit-precio" value="${tx.precio || 0}" inputmode="decimal"></div>
+      </div>
+      <button class="btn-submit" onclick="saveEdit()">Guardar cambios</button>`;
+  } else if (type === 'venta') {
+    body = `
+      <div class="form-group"><label>Cliente</label><input type="text" id="edit-cliente" value="${tx.cliente || ''}"></div>
+      <div class="form-group"><label>Producto</label><input type="text" id="edit-producto" value="${tx.producto || ''}"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Cantidad</label><input type="number" id="edit-cantidad" value="${tx.cantidad || 0}" inputmode="decimal"></div>
+        <div class="form-group"><label>Precio total</label><input type="number" id="edit-total" value="${tx.total || 0}" inputmode="decimal"></div>
+      </div>
+      <button class="btn-submit" onclick="saveEdit()">Guardar cambios</button>`;
+  } else {
+    body = `
+      <div class="form-group"><label>Cliente</label><input type="text" id="edit-cliente" value="${tx.cliente || ''}"></div>
+      <div class="form-group"><label>Monto</label><input type="number" id="edit-monto" value="${tx.monto || 0}" inputmode="decimal"></div>
+      <button class="btn-submit" onclick="saveEdit()">Guardar cambios</button>`;
+  }
+  document.getElementById('edit-modal-title').textContent = 'Editar ' + type;
+  document.getElementById('edit-modal-body').innerHTML = body;
+  document.getElementById('edit-modal-overlay').classList.add('show');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal-overlay').classList.remove('show');
+  editingTx = null;
+}
+
+function saveEdit() {
+  if (!editingTx) return;
+  const { type, id } = editingTx;
+  if (type === 'compra') {
+    const tx = data.compras.find(c => c.id === id);
+    if (tx) {
+      tx.proveedor = document.getElementById('edit-proveedor').value.trim();
+      tx.producto = document.getElementById('edit-producto').value.trim();
+      tx.cantidad = parseFloat(document.getElementById('edit-cantidad').value) || 0;
+      tx.precio = parseFloat(document.getElementById('edit-precio').value) || 0;
+      tx.total = tx.cantidad * tx.precio;
+    }
+  } else if (type === 'venta') {
+    const tx = data.ventas.find(v => v.id === id);
+    if (tx) {
+      const oldTotal = tx.total;
+      const oldStatus = tx.status;
+      tx.cliente = document.getElementById('edit-cliente').value.trim();
+      tx.producto = document.getElementById('edit-producto').value.trim();
+      tx.cantidad = parseFloat(document.getElementById('edit-cantidad').value) || 0;
+      tx.total = parseFloat(document.getElementById('edit-total').value) || 0;
+      // Adjust fiado if needed
+      if (oldStatus === 'fiado' && data.clientes[tx.cliente]) {
+        data.clientes[tx.cliente].saldo += (tx.total - oldTotal);
+        if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+          apiCall('updateCliente', { nombre: tx.cliente, tipo: data.clientes[tx.cliente].tipo, saldo: data.clientes[tx.cliente].saldo });
+        }
+      }
+    }
+  } else {
+    const tx = data.pagos.find(p => p.id === id);
+    if (tx) {
+      const oldMonto = tx.monto;
+      tx.cliente = document.getElementById('edit-cliente').value.trim();
+      tx.monto = parseFloat(document.getElementById('edit-monto').value) || 0;
+      if (data.clientes[tx.cliente]) {
+        data.clientes[tx.cliente].saldo += (oldMonto - tx.monto);
+        if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+          apiCall('updateCliente', { nombre: tx.cliente, tipo: data.clientes[tx.cliente].tipo, saldo: data.clientes[tx.cliente].saldo });
+        }
+      }
+    }
+  }
+  save();
+  closeEditModal();
+  renderDashboard();
+  renderAllTx();
+  renderAllClients();
 }
 
 function renderClientItem(name, c) {
