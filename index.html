@@ -784,70 +784,50 @@ body {
       <h2 style="font-family:'Outfit';font-size:22px;font-weight:800">Registro de Gasto</h2>
     </div>
 
-    <div class="gasto-type-tabs" id="gasto-type-tabs">
-      <button class="gasto-type-tab active" onclick="setGastoType('compra')">Compra</button>
-      <button class="gasto-type-tab" onclick="setGastoType('venta')">Venta</button>
-      <button class="gasto-type-tab" onclick="setGastoType('pago')">Pago</button>
+    <h2 style="font-family:'Outfit';font-size:24px;font-weight:800;margin-bottom:4px">Nuevo Gasto</h2>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:20px">Registra gastos operativos del negocio</p>
+
+    <div class="form-group">
+      <label>DESCRIPCIÓN</label>
+      <input type="text" id="gasto-descripcion" placeholder="Ej: Renta, luz, hielo, bolsas, gasolina...">
     </div>
 
-    <div id="gasto-form-compra">
-      <h2 style="font-family:'Outfit';font-size:24px;font-weight:800;margin-bottom:4px">Nuevo Gasto</h2>
-      <p style="font-size:13px;color:var(--text3);margin-bottom:20px">Completa los detalles de tu adquisición</p>
-
-      <div class="form-group">
-        <label>¿A QUIÉN LE COMPRASTE?</label>
-        <input type="text" id="gasto-proveedor" placeholder="Nombre del proveedor o tienda" list="gasto-proveedor-suggestions">
-        <datalist id="gasto-proveedor-suggestions"></datalist>
-      </div>
-
-      <div class="form-group">
-        <label>¿QUÉ COMPRASTE?</label>
-        <input type="text" id="gasto-descripcion" placeholder="Descripción del producto o servicio">
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>CANTIDAD</label>
-          <input type="number" id="gasto-cantidad" placeholder="0" inputmode="decimal" value="1" oninput="calcGastoTotal()">
-        </div>
-        <div class="form-group">
-          <label>PRECIO UNITARIO</label>
-          <input type="number" id="gasto-precio" placeholder="$0.00" inputmode="decimal" oninput="calcGastoTotal()">
-        </div>
-      </div>
-
-      <div class="gasto-total-card">
-        <div>
-          <div class="label">MONTO TOTAL ESTIMADO</div>
-          <div class="total-amount" id="gasto-total-display">$0.00</div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>PAGADO CON / CUENTA DE ORIGEN</label>
-      </div>
-      <div class="account-btns" id="gasto-cuenta-btns">
-        <button class="account-btn active" onclick="setGastoCuenta('efectivo', this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
-          EFECTIVO
-        </button>
-        <button class="account-btn" onclick="setGastoCuenta('banco', this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
-          BANCO
-        </button>
-        <button class="account-btn" onclick="setGastoCuenta('caja', this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/><path d="M6 14h.01M10 14h.01"/></svg>
-          CAJA
-        </button>
-      </div>
-
-      <div class="form-group">
-        <label>FECHA</label>
-        <input type="date" id="gasto-fecha">
-      </div>
-
-      <button class="btn-submit" onclick="saveGasto()">✅ Registrar Gasto</button>
+    <div class="form-group">
+      <label>MONTO</label>
+      <input type="number" id="gasto-precio" placeholder="$0" inputmode="decimal" oninput="calcGastoTotal()">
     </div>
+
+    <div class="gasto-total-card">
+      <div>
+        <div class="label">MONTO TOTAL</div>
+        <div class="total-amount" id="gasto-total-display">$0</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>PAGADO CON</label>
+    </div>
+    <div class="account-btns" id="gasto-cuenta-btns">
+      <button class="account-btn active" onclick="setGastoCuenta('efectivo', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+        EFECTIVO
+      </button>
+      <button class="account-btn" onclick="setGastoCuenta('banco', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
+        BANCO
+      </button>
+      <button class="account-btn" onclick="setGastoCuenta('caja', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/><path d="M6 14h.01M10 14h.01"/></svg>
+        CAJA
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label>FECHA</label>
+      <input type="date" id="gasto-fecha">
+    </div>
+
+    <button class="btn-submit" onclick="saveGasto()">✅ Registrar Gasto</button>
 
     <div class="gastos-history-header">
       <div class="section-title">Gastos recientes</div>
@@ -1969,14 +1949,7 @@ function confirmAbono() {
 
 
 // ═══════════ GASTOS ═══════════
-let currentGastoType = 'compra';
 let currentGastoCuenta = 'efectivo';
-
-function setGastoType(type) {
-  currentGastoType = type;
-  document.querySelectorAll('#gasto-type-tabs .gasto-type-tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-}
 
 function setGastoCuenta(cuenta, btn) {
   currentGastoCuenta = cuenta;
@@ -1985,19 +1958,12 @@ function setGastoCuenta(cuenta, btn) {
 }
 
 function calcGastoTotal() {
-  const cant = parseFloat(document.getElementById('gasto-cantidad').value) || 0;
   const precio = parseFloat(document.getElementById('gasto-precio').value) || 0;
-  const total = cant * precio;
-  document.getElementById('gasto-total-display').textContent = '$' + total.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  document.getElementById('gasto-total-display').textContent = fmt(precio);
 }
 
 function renderGastosPage() {
   document.getElementById('gasto-fecha').value = todayStr();
-  // Update proveedor suggestions
-  const provs = [...new Set(data.gastos.map(g => g.proveedor).filter(p => p))];
-  const dl = document.getElementById('gasto-proveedor-suggestions');
-  if (dl) dl.innerHTML = provs.map(p => `<option value="${p}">`).join('');
-  // Render recent gastos
   renderGastosList();
 }
 
@@ -2013,12 +1979,11 @@ function renderGastosList() {
       <div class="tx-icon" style="background:var(--red-bg)">🧾</div>
       <div class="tx-info">
         <h4>${g.descripcion || 'Gasto'}</h4>
-        <p>${g.proveedor || 'Sin proveedor'} · ${g.cuenta || ''} · ${formatDate(g.dia)}</p>
+        <p>${g.cuenta || 'efectivo'} · ${formatDate(g.dia)}</p>
       </div>
     </div>
     <div class="tx-amount">
       <div class="amount amount-red">-${fmt(g.total)}</div>
-      <span class="badge" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border)">${g.tipo || 'compra'}</span>
     </div>
     <div class="tx-actions">
       <button class="btn-edit" onclick="editGasto(${g.id})">Editar</button>
@@ -2028,22 +1993,16 @@ function renderGastosList() {
 }
 
 function saveGasto() {
-  const proveedor = document.getElementById('gasto-proveedor').value.trim();
   const descripcion = document.getElementById('gasto-descripcion').value.trim();
-  const cantidad = parseFloat(document.getElementById('gasto-cantidad').value) || 0;
-  const precio = parseFloat(document.getElementById('gasto-precio').value) || 0;
-  if (!descripcion || !precio) return alert('Completa al menos la descripción y el precio');
+  const monto = parseFloat(document.getElementById('gasto-precio').value) || 0;
+  if (!descripcion || !monto) return alert('Completa la descripción y el monto');
 
   const row = {
     id: Date.now(),
     fecha: new Date().toISOString(),
     dia: document.getElementById('gasto-fecha').value || todayStr(),
-    tipo: currentGastoType,
-    proveedor,
     descripcion,
-    cantidad,
-    precio,
-    total: cantidad * precio,
+    total: monto,
     cuenta: currentGastoCuenta
   };
 
@@ -2053,11 +2012,9 @@ function saveGasto() {
   renderDashboard();
 
   // Clear form
-  document.getElementById('gasto-proveedor').value = '';
   document.getElementById('gasto-descripcion').value = '';
-  document.getElementById('gasto-cantidad').value = '1';
   document.getElementById('gasto-precio').value = '';
-  document.getElementById('gasto-total-display').textContent = '$0.00';
+  document.getElementById('gasto-total-display').textContent = '$0';
   currentGastoCuenta = 'efectivo';
   document.querySelectorAll('#gasto-cuenta-btns .account-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
 
@@ -2084,12 +2041,8 @@ function editGasto(id) {
   if (!g) return;
   editingTx = { type: 'gasto', id, tx: g };
   const body = `
-    <div class="form-group"><label>Proveedor</label><input type="text" id="edit-proveedor" value="${g.proveedor || ''}"></div>
     <div class="form-group"><label>Descripción</label><input type="text" id="edit-descripcion" value="${g.descripcion || ''}"></div>
-    <div class="form-row">
-      <div class="form-group"><label>Cantidad</label><input type="number" id="edit-cantidad" value="${g.cantidad || 0}" inputmode="decimal"></div>
-      <div class="form-group"><label>Precio unit.</label><input type="number" id="edit-precio" value="${g.precio || 0}" inputmode="decimal"></div>
-    </div>
+    <div class="form-group"><label>Monto</label><input type="number" id="edit-monto" value="${g.total || 0}" inputmode="decimal"></div>
     <button class="btn-submit" onclick="saveGastoEdit()">Guardar cambios</button>`;
   document.getElementById('edit-modal-title').textContent = 'Editar gasto';
   document.getElementById('edit-modal-body').innerHTML = body;
@@ -2100,11 +2053,8 @@ function saveGastoEdit() {
   if (!editingTx || editingTx.type !== 'gasto') return;
   const g = data.gastos.find(x => x.id === editingTx.id);
   if (g) {
-    g.proveedor = document.getElementById('edit-proveedor').value.trim();
     g.descripcion = document.getElementById('edit-descripcion').value.trim();
-    g.cantidad = parseFloat(document.getElementById('edit-cantidad').value) || 0;
-    g.precio = parseFloat(document.getElementById('edit-precio').value) || 0;
-    g.total = g.cantidad * g.precio;
+    g.total = parseFloat(document.getElementById('edit-monto').value) || 0;
   }
   save();
   closeEditModal();
