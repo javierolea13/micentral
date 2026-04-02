@@ -520,6 +520,22 @@ body {
       <div class="sub" id="sum-cobrado-count">0 pagos</div>
     </div>
   </div>
+  <div style="padding:0 20px 12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    <div class="summary-card" style="border-color:var(--purple);background:var(--purple-bg);">
+      <div class="label"><span class="dot" style="background:var(--purple)"></span> Pollos vendidos</div>
+      <div class="value" style="color:var(--purple);font-size:28px" id="sum-pollos-qty">0</div>
+      <div class="sub" id="sum-pollos-qty-sub">hoy</div>
+    </div>
+    <div class="summary-card" style="border-color:var(--purple);background:var(--purple-bg);">
+      <div class="label"><span class="dot" style="background:var(--purple)"></span> Valor pollos</div>
+      <div class="value" style="color:var(--purple);font-size:28px" id="sum-pollos-val">$0</div>
+      <div class="sub" id="sum-pollos-val-sub">hoy</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Movimientos</div>
 
   <div class="section">
     <div class="section-header">
@@ -635,7 +651,8 @@ body {
     <div id="form-compra">
       <div class="form-group">
         <label>Proveedor</label>
-        <input type="text" id="compra-proveedor" placeholder="¿A quién le compraste?">
+        <input type="text" id="compra-proveedor" placeholder="¿A quién le compraste?" list="proveedor-suggestions">
+        <datalist id="proveedor-suggestions"></datalist>
       </div>
       <div class="form-group">
         <label>Producto</label>
@@ -698,6 +715,10 @@ body {
         <input type="number" id="pago-monto" placeholder="$0" inputmode="decimal">
       </div>
       <div class="form-group">
+        <div class="form-group">
+        <label>Cuenta</label>
+        <input type="text" id="pago-cuenta" placeholder="efectivo, transferencia, etc.">
+      </div>
         <label>Fecha</label>
         <input type="date" id="pago-fecha" value="">
       </div>
@@ -984,6 +1005,7 @@ function setModalType(type) {
   document.getElementById('form-compra').style.display = type === 'compra' ? 'block' : 'none';
   document.getElementById('form-venta').style.display = type === 'venta' ? 'block' : 'none';
   document.getElementById('form-pago').style.display = type === 'pago' ? 'block' : 'none';
+  if (type === 'compra') updateProveedorSuggestions();
   if (type === 'venta') {
     if (ventaLines.length === 0) addVentaLine();
     updateClientSuggestions();
@@ -1004,6 +1026,12 @@ function setPayStatus(status) {
   });
 }
 
+// ═══════════ PROVEEDORES ═══════════
+function updateProveedorSuggestions() {
+  const provs = [...new Set(data.compras.map(c => c.proveedor).filter(p => p))];
+  const dl = document.getElementById('proveedor-suggestions');
+  if (dl) dl.innerHTML = provs.map(p => `<option value="${p}">`).join('');
+}
 // ═══════════ SUGGESTIONS ═══════════
 function updateClientSuggestions() {
   const names = Object.keys(data.clientes);
@@ -1110,7 +1138,8 @@ function savePago() {
     id: Date.now(),
     fecha: new Date().toISOString(),
     dia: document.getElementById('pago-fecha').value || todayStr(),
-    cliente, monto
+    cliente, monto,
+    cuenta: document.getElementById('pago-cuenta').value.trim() || 'efectivo'
   };
   data.pagos.push(row);
   save();
@@ -1169,6 +1198,12 @@ function renderDashboard() {
   document.getElementById('sum-compras-count').textContent = comprasHoy.length + ' entradas';
   document.getElementById('sum-cobrado').textContent = fmt(totalCobrado);
   document.getElementById('sum-cobrado-count').textContent = pagosHoy.length + ' pagos';
+  // Pollos
+  const pollosHoy = ventasHoy.filter(v => v.producto && v.producto.toLowerCase().includes('pollo'));
+  const pollosQty = pollosHoy.reduce((s,v) => s + (Number(v.cantidad) || 0), 0);
+  const pollosVal = pollosHoy.reduce((s,v) => s + (Number(v.total) || 0), 0);
+  document.getElementById('sum-pollos-qty').textContent = pollosQty;
+  document.getElementById('sum-pollos-val').textContent = fmt(pollosVal);
 
   // Recent tx (last 5)
   const allTx = getAllTx().slice(0, 5);
@@ -1462,6 +1497,23 @@ function quickPago() {
   const monto = prompt('¿Cuánto abonó ' + name + '?');
   if (!monto || isNaN(monto)) return;
   const montoNum = parseFloat(monto);
+  const cuenta = prompt('¿A qué cuenta se abonó? (efectivo, transferencia, etc.)', 'efectivo');
+  if (cuenta === null) return;
+  const fechaInput = prompt('¿Fecha del abono? (AAAA-MM-DD)', todayStr());
+  if (fechaInput === null) return;
+  const dia = fechaInput || todayStr();
+  if (!data.clientes[name]) return;
+  data.clientes[name].saldo = Math.max(0, data.clientes[name].saldo - montoNum);
+  const row = { id: Date.now(), fecha: new Date().toISOString(), dia: dia, cliente: name, monto: montoNum, cuenta: cuenta };
+  data.pagos.push(row);
+  save();
+  apiCall('addPago', row);
+  apiCall('updateCliente', { nombre: name, tipo: data.clientes[name].tipo, saldo: data.clientes[name].saldo });
+  showSyncIndicator('Guardando...');
+  setTimeout(hideSyncIndicator, 1500);
+  document.getElementById('detail-balance').textContent = fmt(data.clientes[name].saldo);
+  renderDashboard();
+}
   if (!data.clientes[name]) return;
   data.clientes[name].saldo = Math.max(0, data.clientes[name].saldo - montoNum);
   const row = { id: Date.now(), fecha: new Date().toISOString(), dia: todayStr(), cliente: name, monto: montoNum };
