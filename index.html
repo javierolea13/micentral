@@ -585,6 +585,7 @@ body {
     <div class="client-balance-card">
       <div class="label">SALDO PENDIENTE</div>
       <div class="balance" id="detail-balance"></div>
+      <button class="btn-submit" style="margin-top:12px;max-width:200px;margin-left:auto;margin-right:auto;display:block;font-size:14px;padding:10px" onclick="quickPago()">💵 Registrar abono</button>
     </div>
     <div class="section-header" style="margin-bottom:14px">
       <div class="section-title">Historial</div>
@@ -646,8 +647,10 @@ body {
           <input type="number" id="compra-precio" placeholder="$0" inputmode="decimal">
         </div>
       </div>
-      <button class="btn-submit" onclick="saveCompra()">Registrar compra</button>
-    </div>
+     <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" id="compra-fecha" value="">
+      </div>
 
     <!-- VENTA FORM -->
     <div id="form-venta" style="display:none">
@@ -665,9 +668,13 @@ body {
       <div id="venta-lineas"></div>
       <button type="button" class="btn-add-line" onclick="addVentaLine()">＋ Agregar otro producto</button>
 
-      <div class="form-toggle" style="margin-top:12px">
+      <div class="form-toggle" id="pay-toggle" style="margin-top:12px">
         <button class="toggle-btn active" onclick="setPayStatus('pagado')">✅ Pagado</button>
         <button class="toggle-btn" onclick="setPayStatus('fiado')">🔴 Fiado</button>
+      </div>
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" id="venta-fecha" value="">
       </div>
       <div id="venta-total-display" style="text-align:right;font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:var(--green);margin:8px 0;">Total: $0</div>
       <button class="btn-submit" onclick="saveVenta()">Registrar venta</button>
@@ -683,6 +690,10 @@ body {
       <div class="form-group">
         <label>Monto del abono</label>
         <input type="number" id="pago-monto" placeholder="$0" inputmode="decimal">
+      </div>
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" id="pago-fecha" value="">
       </div>
       <button class="btn-submit" onclick="savePago()">Registrar pago</button>
     </div>
@@ -941,6 +952,12 @@ function switchPage(page) {
 function openModal() {
   document.getElementById('modal-overlay').classList.add('show');
   setModalType('compra');
+  // Set today's date as default
+  const hoy = todayStr();
+  ['compra-fecha','venta-fecha','pago-fecha'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = hoy;
+  });
 }
 function openModalVenta() {
   document.getElementById('modal-overlay').classList.add('show');
@@ -973,11 +990,12 @@ function setClientType(type) {
     b.classList.toggle('active', (i===0 && type==='clienta') || (i===1 && type==='mesa'));
   });
 }
+
 function setPayStatus(status) {
   currentPayStatus = status;
-  const btns = document.querySelectorAll('#form-venta .form-toggle:last-of-type .toggle-btn');
-  btns[0].classList.toggle('active', status === 'pagado');
-  btns[1].classList.toggle('active', status === 'fiado');
+  document.querySelectorAll('#pay-toggle .toggle-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0 && status==='pagado') || (i===1 && status==='fiado'));
+  });
 }
 
 // ═══════════ SUGGESTIONS ═══════════
@@ -1000,7 +1018,7 @@ function saveCompra() {
   const row = {
     id: Date.now(),
     fecha: new Date().toISOString(),
-    dia: todayStr(),
+    dia: document.getElementById('compra-fecha').value || todayStr(),
     proveedor, producto, cantidad, precio,
     total: cantidad * precio
   };
@@ -1047,7 +1065,7 @@ function saveVenta() {
     const row = {
       id: Date.now() + Math.random(),
       fecha: new Date().toISOString(),
-      dia: todayStr(),
+      dia: document.getElementById('venta-fecha').value || todayStr(),
       cliente,
       producto: l.producto,
       cantidad: l.cantidad,
@@ -1085,7 +1103,7 @@ function savePago() {
   const row = {
     id: Date.now(),
     fecha: new Date().toISOString(),
-    dia: todayStr(),
+    dia: document.getElementById('pago-fecha').value || todayStr(),
     cliente, monto
   };
   data.pagos.push(row);
@@ -1431,6 +1449,24 @@ function showClientDetail(name) {
     : '<div class="empty-state"><div class="emoji">📝</div><p>Sin historial aún.</p></div>';
 
   switchPage('client-detail');
+}
+
+function quickPago() {
+  const name = document.getElementById('detail-name').textContent;
+  const monto = prompt('¿Cuánto abonó ' + name + '?');
+  if (!monto || isNaN(monto)) return;
+  const montoNum = parseFloat(monto);
+  if (!data.clientes[name]) return;
+  data.clientes[name].saldo = Math.max(0, data.clientes[name].saldo - montoNum);
+  const row = { id: Date.now(), fecha: new Date().toISOString(), dia: todayStr(), cliente: name, monto: montoNum };
+  data.pagos.push(row);
+  save();
+  apiCall('addPago', row);
+  apiCall('updateCliente', { nombre: name, tipo: data.clientes[name].tipo, saldo: data.clientes[name].saldo });
+  showSyncIndicator('Guardando...');
+  setTimeout(hideSyncIndicator, 1500);
+  document.getElementById('detail-balance').textContent = fmt(data.clientes[name].saldo);
+  renderDashboard();
 }
 
 // ═══════════ INIT ═══════════
