@@ -1236,7 +1236,9 @@ function todayStr() {
   return d.toISOString().split('T')[0];
 }
 function formatDate(iso) {
+  if (!iso) return '';
   const d = new Date(iso + 'T12:00:00');
+  if (isNaN(d.getTime())) return '';
   return d.toLocaleDateString('es-MX', { day:'numeric', month:'short' });
 }
 function formatTime(iso) {
@@ -1827,12 +1829,12 @@ function quickPago() {
 
   if (ventasFiadas.length > 0) {
     list.innerHTML = ventasFiadas.map(v => {
-      const vid = v.id;
-      return `<div class="abono-venta-item" id="abono-v-${vid}" onclick="toggleAbonoVenta(${vid})">
+      const vid = String(v.id);
+      return `<div class="abono-venta-item" id="abono-v-${vid}" onclick="toggleAbonoVenta('${vid}')">
         <div class="abono-venta-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg></div>
         <div class="abono-venta-details">
           <h4>${v.producto || 'Venta'}</h4>
-          <p>${v.cantidad ? v.cantidad + ' pz · ' : ''}${formatDate(v.dia)}</p>
+          <p>${v.cantidad ? v.cantidad + ' pz · ' : ''}${v.dia ? formatDate(v.dia) : ''}</p>
         </div>
         <div class="abono-venta-amount">${fmt(v.total)}</div>
       </div>`;
@@ -1849,19 +1851,20 @@ function closeAbonoModal() {
 }
 
 function toggleAbonoVenta(ventaId) {
-  if (abonoSelectedVentas.has(ventaId)) {
-    abonoSelectedVentas.delete(ventaId);
+  const vid = String(ventaId);
+  if (abonoSelectedVentas.has(vid)) {
+    abonoSelectedVentas.delete(vid);
   } else {
-    abonoSelectedVentas.add(ventaId);
+    abonoSelectedVentas.add(vid);
   }
   // Update UI
-  const el = document.getElementById('abono-v-' + ventaId);
-  if (el) el.classList.toggle('selected', abonoSelectedVentas.has(ventaId));
+  const el = document.getElementById('abono-v-' + vid);
+  if (el) el.classList.toggle('selected', abonoSelectedVentas.has(vid));
 
   // Calculate selected total and auto-fill monto
   const selectedTotal = data.ventas
-    .filter(v => abonoSelectedVentas.has(v.id))
-    .reduce((s, v) => s + v.total, 0);
+    .filter(v => abonoSelectedVentas.has(String(v.id)))
+    .reduce((s, v) => s + Number(v.total), 0);
   document.getElementById('abono-selected-total').textContent = fmt(selectedTotal);
   document.getElementById('abono-monto').value = selectedTotal > 0 ? selectedTotal : '';
 }
@@ -1893,10 +1896,10 @@ function confirmAbono() {
   if (abonoSelectedVentas.size > 0) {
     // Pay selected ventas in order
     for (const vid of abonoSelectedVentas) {
-      const venta = data.ventas.find(v => v.id === vid);
-      if (venta && venta.status === 'fiado' && remaining >= venta.total) {
+      const venta = data.ventas.find(v => String(v.id) === String(vid));
+      if (venta && venta.status === 'fiado' && remaining >= Number(venta.total)) {
         venta.status = 'pagado';
-        remaining -= venta.total;
+        remaining -= Number(venta.total);
         ventasToUpdate.push(venta);
       }
     }
@@ -1906,9 +1909,9 @@ function confirmAbono() {
       .filter(v => v.cliente === name && v.status === 'fiado')
       .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
     for (const venta of ventasFiadas) {
-      if (remaining >= venta.total) {
+      if (remaining >= Number(venta.total)) {
         venta.status = 'pagado';
-        remaining -= venta.total;
+        remaining -= Number(venta.total);
         ventasToUpdate.push(venta);
       }
     }
