@@ -603,9 +603,11 @@ body {
   flex-shrink: 0;
   transition: all 0.2s;
 }
+.abono-venta-check svg { display: none; }
 .abono-venta-item.selected .abono-venta-check {
   background: var(--green); border-color: var(--green);
 }
+.abono-venta-item.selected .abono-venta-check svg { display: block; }
 .abono-venta-details { flex: 1; }
 .abono-venta-details h4 { font-size: 14px; font-weight: 600; }
 .abono-venta-details p { font-size: 12px; color: var(--text3); margin-top: 2px; }
@@ -933,9 +935,10 @@ body {
     <div id="form-pago" style="display:none">
       <div class="form-group">
         <label>Cliente / Mesa</label>
-        <input type="text" id="pago-cliente" placeholder="¿Quién te pagó?" list="client-suggestions-pago">
+        <input type="text" id="pago-cliente" placeholder="¿Quién te pagó?" list="client-suggestions-pago" oninput="showPagoVentasFiadas()">
         <datalist id="client-suggestions-pago"></datalist>
       </div>
+      <div id="pago-ventas-fiadas" style="margin-bottom:16px"></div>
       <div class="form-group">
         <label>Monto del abono</label>
         <input type="number" id="pago-monto" placeholder="$0" inputmode="decimal">
@@ -1424,6 +1427,52 @@ function saveVenta() {
   renderDashboard();
 }
 
+// ═══════════ PAGO: VENTAS FIADAS ═══════════
+let pagoVentasFiadas = [];
+let pagoSelectedIndexes = new Set();
+
+function showPagoVentasFiadas() {
+  const cliente = document.getElementById('pago-cliente').value.trim();
+  const container = document.getElementById('pago-ventas-fiadas');
+  pagoVentasFiadas = data.ventas.filter(v => v.cliente === cliente && v.status === 'fiado');
+  pagoSelectedIndexes = new Set();
+
+  if (pagoVentasFiadas.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = '<div class="form-group"><label>CUENTAS ABIERTAS (FIADO)</label></div>' +
+    '<div class="abono-ventas-list">' +
+    pagoVentasFiadas.map((v, idx) => {
+      return `<div class="abono-venta-item" id="pago-v-${idx}" onclick="togglePagoVenta(${idx})">
+        <div class="abono-venta-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="abono-venta-details">
+          <h4>${v.producto || 'Venta'}</h4>
+          <p>${v.cantidad ? v.cantidad + ' pz · ' : ''}${v.dia ? formatDate(v.dia) : ''}</p>
+        </div>
+        <div class="abono-venta-amount">${fmt(v.total)}</div>
+      </div>`;
+    }).join('') + '</div>';
+}
+
+function togglePagoVenta(idx) {
+  if (pagoSelectedIndexes.has(idx)) {
+    pagoSelectedIndexes.delete(idx);
+  } else {
+    pagoSelectedIndexes.add(idx);
+  }
+  const el = document.getElementById('pago-v-' + idx);
+  if (el) el.classList.toggle('selected', pagoSelectedIndexes.has(idx));
+
+  // Auto-fill monto
+  let total = 0;
+  pagoSelectedIndexes.forEach(i => {
+    if (pagoVentasFiadas[i]) total += Number(pagoVentasFiadas[i].total);
+  });
+  document.getElementById('pago-monto').value = total > 0 ? total : '';
+}
+
 function savePago() {
   const cliente = document.getElementById('pago-cliente').value.trim();
   const monto = parseFloat(document.getElementById('pago-monto').value) || 0;
@@ -1433,6 +1482,30 @@ function savePago() {
     data.clientes[cliente] = { tipo: 'clienta', saldo: 0 };
   }
   data.clientes[cliente].saldo = Math.max(0, data.clientes[cliente].saldo - monto);
+
+  // Auto-change status on selected ventas
+  let remaining = monto;
+  const ventasToUpdate = [];
+  if (pagoSelectedIndexes.size > 0) {
+    pagoSelectedIndexes.forEach(idx => {
+      const venta = pagoVentasFiadas[idx];
+      if (venta && venta.status === 'fiado' && remaining >= Number(venta.total)) {
+        venta.status = 'pagado';
+        remaining -= Number(venta.total);
+        ventasToUpdate.push(venta);
+      }
+    });
+  } else {
+    // No selection: auto-pay oldest first
+    const fiadas = data.ventas.filter(v => v.cliente === cliente && v.status === 'fiado').sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+    for (const venta of fiadas) {
+      if (remaining >= Number(venta.total)) {
+        venta.status = 'pagado';
+        remaining -= Number(venta.total);
+        ventasToUpdate.push(venta);
+      }
+    }
+  }
 
   const row = {
     id: Date.now(),
@@ -1449,10 +1522,14 @@ function savePago() {
   // Sync to Sheets
   if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
     showSyncIndicator('Guardando...');
-    Promise.all([
+    const promises = [
       apiCall('addPago', row),
       apiCall('updateCliente', { nombre: cliente, tipo: data.clientes[cliente].tipo, saldo: data.clientes[cliente].saldo })
-    ]).then(hideSyncIndicator);
+    ];
+    ventasToUpdate.forEach(v => {
+      promises.push(fetch(API_URL + '?action=editRow&sheet=Ventas&data=' + encodeURIComponent(JSON.stringify(v))).then(r => r.json()).catch(() => {}));
+    });
+    Promise.all(promises).then(hideSyncIndicator);
   }
 }
 
@@ -1468,6 +1545,9 @@ function clearForm(type) {
     if (td) td.textContent = 'Total: $0';
   } else {
     ['pago-cliente','pago-monto'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('pago-ventas-fiadas').innerHTML = '';
+    pagoVentasFiadas = [];
+    pagoSelectedIndexes = new Set();
     currentPagoCuenta = 'efectivo';
     document.querySelectorAll('#pago-cuenta-btns .account-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
   }
@@ -1802,15 +1882,17 @@ function showClientDetail(name) {
 
 // ═══════════ ABONO MODAL ═══════════
 let abonoClientName = '';
-let abonoSelectedVentas = new Set();
+let abonoSelectedIndexes = new Set();
+let abonoVentasFiadas = [];
 let abonoCuenta = 'efectivo';
 
 function quickPago() {
   const name = document.getElementById('detail-name').textContent;
   if (!data.clientes[name]) return;
   abonoClientName = name;
-  abonoSelectedVentas = new Set();
+  abonoSelectedIndexes = new Set();
   abonoCuenta = 'efectivo';
+  abonoVentasFiadas = data.ventas.filter(v => v.cliente === name && v.status === 'fiado');
 
   document.getElementById('abono-modal-title').textContent = 'Abono de ' + name;
   document.getElementById('abono-modal-subtitle').textContent = 'Saldo pendiente: ' + fmt(data.clientes[name].saldo);
@@ -1823,14 +1905,11 @@ function quickPago() {
     b.classList.toggle('active', i === 0);
   });
 
-  // Show fiado ventas
-  const ventasFiadas = data.ventas.filter(v => v.cliente === name && v.status === 'fiado');
   const list = document.getElementById('abono-ventas-list');
 
-  if (ventasFiadas.length > 0) {
-    list.innerHTML = ventasFiadas.map(v => {
-      const vid = String(v.id);
-      return `<div class="abono-venta-item" id="abono-v-${vid}" onclick="toggleAbonoVenta('${vid}')">
+  if (abonoVentasFiadas.length > 0) {
+    list.innerHTML = abonoVentasFiadas.map((v, idx) => {
+      return `<div class="abono-venta-item" id="abono-v-${idx}" onclick="toggleAbonoVenta(${idx})">
         <div class="abono-venta-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg></div>
         <div class="abono-venta-details">
           <h4>${v.producto || 'Venta'}</h4>
@@ -1850,21 +1929,21 @@ function closeAbonoModal() {
   document.getElementById('abono-modal-overlay').classList.remove('show');
 }
 
-function toggleAbonoVenta(ventaId) {
-  const vid = String(ventaId);
-  if (abonoSelectedVentas.has(vid)) {
-    abonoSelectedVentas.delete(vid);
+function toggleAbonoVenta(idx) {
+  if (abonoSelectedIndexes.has(idx)) {
+    abonoSelectedIndexes.delete(idx);
   } else {
-    abonoSelectedVentas.add(vid);
+    abonoSelectedIndexes.add(idx);
   }
   // Update UI
-  const el = document.getElementById('abono-v-' + vid);
-  if (el) el.classList.toggle('selected', abonoSelectedVentas.has(vid));
+  const el = document.getElementById('abono-v-' + idx);
+  if (el) el.classList.toggle('selected', abonoSelectedIndexes.has(idx));
 
   // Calculate selected total and auto-fill monto
-  const selectedTotal = data.ventas
-    .filter(v => abonoSelectedVentas.has(String(v.id)))
-    .reduce((s, v) => s + Number(v.total), 0);
+  let selectedTotal = 0;
+  abonoSelectedIndexes.forEach(i => {
+    if (abonoVentasFiadas[i]) selectedTotal += Number(abonoVentasFiadas[i].total);
+  });
   document.getElementById('abono-selected-total').textContent = fmt(selectedTotal);
   document.getElementById('abono-monto').value = selectedTotal > 0 ? selectedTotal : '';
 }
@@ -1893,16 +1972,16 @@ function confirmAbono() {
   let remaining = monto;
   const ventasToUpdate = [];
 
-  if (abonoSelectedVentas.size > 0) {
-    // Pay selected ventas in order
-    for (const vid of abonoSelectedVentas) {
-      const venta = data.ventas.find(v => String(v.id) === String(vid));
+  if (abonoSelectedIndexes.size > 0) {
+    // Pay selected ventas
+    abonoSelectedIndexes.forEach(idx => {
+      const venta = abonoVentasFiadas[idx];
       if (venta && venta.status === 'fiado' && remaining >= Number(venta.total)) {
         venta.status = 'pagado';
         remaining -= Number(venta.total);
         ventasToUpdate.push(venta);
       }
-    }
+    });
   } else {
     // No ventas selected: try to pay oldest fiado ventas first
     const ventasFiadas = data.ventas
