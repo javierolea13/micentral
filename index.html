@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Mi Central - Control de Negocio</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#34D399">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mi Central">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0F1115;
+  --surface: #1A1D24;
+  --surface2: #22262F;
+  --surface3: #2C313C;
+  --border: #2E3340;
+  --text: #F0F0F2;
+  --text2: #9CA3B4;
+  --text3: #636B7E;
+  --green: #34D399;
+  --green-bg: rgba(52,211,153,0.1);
+  --green-border: rgba(52,211,153,0.25);
+  --red: #F87171;
+  --red-bg: rgba(248,113,113,0.1);
+  --red-border: rgba(248,113,113,0.25);
+  --blue: #60A5FA;
+  --blue-bg: rgba(96,165,250,0.1);
+  --blue-border: rgba(96,165,250,0.25);
+  --orange: #FBBF24;
+  --orange-bg: rgba(251,191,36,0.1);
+  --orange-border: rgba(251,191,36,0.25);
+  --purple: #A78BFA;
+  --purple-bg: rgba(167,139,250,0.1);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  padding-bottom: 90px;
+}
+
+/* ── Header ── */
+.header {
+  padding: 20px 20px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.header h1 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.header h1 span { color: var(--green); }
+.header-date {
+  font-size: 13px;
+  color: var(--text2);
+  background: var(--surface);
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+/* ── Summary Cards ── */
+.summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 20px;
+}
+.summary-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  border: 1px solid var(--border);
+  transition: transform 0.2s;
+}
+.summary-card:active { transform: scale(0.97); }
+.summary-card .label {
+  font-size: 12px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.summary-card .value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.summary-card .sub {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 4px;
+}
+.card-green .value { color: var(--green); }
+.card-red .value { color: var(--red); }
+.card-blue .value { color: var(--blue); }
+.card-orange .value { color: var(--orange); }
+.dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+}
+.dot-green { background: var(--green); }
+.dot-red { background: var(--red); }
+.dot-blue { background: var(--blue); }
+.dot-orange { background: var(--orange); }
+
+/* ── Sections ── */
+.section {
+  padding: 0 20px;
+  margin-bottom: 24px;
+}
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+.see-all {
+  font-size: 13px;
+  color: var(--green);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+}
+
+/* ── Transaction List ── */
+.tx-list { display: flex; flex-direction: column; gap: 8px; }
+.tx-item {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.tx-item:active { background: var(--surface2); }
+.tx-left { display: flex; align-items: center; gap: 12px; }
+.tx-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.tx-icon.entrada { background: var(--green-bg); }
+.tx-icon.venta { background: var(--blue-bg); }
+.tx-icon.pago { background: var(--orange-bg); }
+.tx-info h4 { font-size: 14px; font-weight: 600; }
+.tx-info p { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.tx-amount { text-align: right; }
+.tx-amount .amount { font-size: 15px; font-weight: 700; font-family: 'Outfit', sans-serif; }
+.tx-amount .badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-top: 4px;
+  display: inline-block; font-weight: 600;
+}
+.badge-pagado { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.badge-fiado { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.badge-abono { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+.amount-green { color: var(--green); }
+.amount-red { color: var(--red); }
+.amount-blue { color: var(--blue); }
+.amount-orange { color: var(--orange); }
+
+/* ── Clients (deudores) ── */
+.client-list { display: flex; flex-direction: column; gap: 8px; }
+.client-item {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.client-item:active { background: var(--surface2); }
+.client-left { display: flex; align-items: center; gap: 12px; }
+.client-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--surface3);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 16px; color: var(--text2);
+  font-family: 'Outfit', sans-serif;
+}
+.client-info h4 { font-size: 14px; font-weight: 600; }
+.client-info p { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.client-debt {
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px; font-weight: 700; color: var(--red);
+}
+
+/* ── Bottom Nav ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 0 max(10px, env(safe-area-inset-bottom));
+  z-index: 100;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(26,29,36,0.92);
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); font-size: 10px; font-family: 'DM Sans', sans-serif;
+  font-weight: 600; transition: color 0.2s;
+  padding: 4px 12px;
+}
+.nav-item.active { color: var(--green); }
+.nav-item svg { width: 24px; height: 24px; }
+
+/* ── FAB ── */
+.fab {
+  position: fixed; bottom: max(80px, calc(60px + env(safe-area-inset-bottom)));
+  right: 20px;
+  width: 56px; height: 56px;
+  background: var(--green);
+  border-radius: 16px;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(52,211,153,0.4);
+  z-index: 101;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.fab:active { transform: scale(0.92); }
+.fab svg { width: 28px; height: 28px; color: var(--bg); }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 200; display: none; align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 500px;
+  max-height: 85dvh;
+  overflow-y: auto;
+  padding: 20px;
+  animation: slideUp 0.3s ease-out;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-handle {
+  width: 36px; height: 4px; background: var(--surface3);
+  border-radius: 2px; margin: 0 auto 20px;
+}
+.modal h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px; font-weight: 800;
+  margin-bottom: 20px;
+}
+.modal-tabs {
+  display: flex; gap: 8px; margin-bottom: 20px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+.modal-tab {
+  padding: 8px 16px; border-radius: 20px;
+  font-size: 13px; font-weight: 600;
+  border: 1px solid var(--border);
+  background: transparent; color: var(--text2);
+  cursor: pointer; white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+}
+.modal-tab.active {
+  background: var(--green); color: var(--bg); border-color: var(--green);
+}
+
+/* ── Form ── */
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block; font-size: 12px; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 8px; font-weight: 600;
+}
+.form-group input, .form-group select {
+  width: 100%; padding: 14px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text); font-size: 15px;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus {
+  border-color: var(--green);
+}
+.form-group input::placeholder { color: var(--text3); }
+.form-group select { appearance: none; cursor: pointer; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.btn-submit {
+  width: 100%; padding: 16px;
+  background: var(--green);
+  color: var(--bg);
+  border: none; border-radius: var(--radius-sm);
+  font-size: 16px; font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: opacity 0.2s;
+}
+.btn-submit:active { opacity: 0.85; }
+
+.form-toggle {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+.toggle-btn {
+  flex: 1; padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-size: 13px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.toggle-btn.active {
+  border-color: var(--green);
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+/* ── Pages ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center; padding: 40px 20px;
+  color: var(--text3);
+}
+.empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; line-height: 1.5; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 0; }
+
+/* ── Detail view ── */
+.detail-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 24px;
+}
+.back-btn {
+  background: var(--surface2); border: none; border-radius: 10px;
+  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text);
+}
+.client-detail-avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--surface3);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 22px; color: var(--text2);
+  font-family: 'Outfit', sans-serif;
+}
+.client-balance-card {
+  background: var(--red-bg);
+  border: 1px solid var(--red-border);
+  border-radius: var(--radius);
+  padding: 20px; text-align: center;
+  margin-bottom: 20px;
+}
+.client-balance-card .label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+.client-balance-card .balance {
+  font-family: 'Outfit', sans-serif;
+  font-size: 32px; font-weight: 900; color: var(--red);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ PAGE: INICIO ═══════════ -->
+<div id="page-inicio" class="page active">
+  <div class="header">
+    <h1>Mi <span>Central</span></h1>
+    <div class="header-date" id="today-date"></div>
+  </div>
+
+  <div class="summary">
+    <div class="summary-card card-green">
+      <div class="label"><span class="dot dot-green"></span> Ventas hoy</div>
+      <div class="value" id="sum-ventas">$0</div>
+      <div class="sub" id="sum-ventas-count">0 operaciones</div>
+    </div>
+    <div class="summary-card card-red">
+      <div class="label"><span class="dot dot-red"></span> Fiado total</div>
+      <div class="value" id="sum-fiado">$0</div>
+      <div class="sub" id="sum-fiado-count">0 clientes</div>
+    </div>
+    <div class="summary-card card-blue">
+      <div class="label"><span class="dot dot-blue"></span> Compras hoy</div>
+      <div class="value" id="sum-compras">$0</div>
+      <div class="sub" id="sum-compras-count">0 entradas</div>
+    </div>
+    <div class="summary-card card-orange">
+      <div class="label"><span class="dot dot-orange"></span> Cobrado hoy</div>
+      <div class="value" id="sum-cobrado">$0</div>
+      <div class="sub" id="sum-cobrado-count">0 pagos</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Movimientos</div>
+      <button class="see-all" onclick="switchPage('movimientos')">Ver todos →</button>
+    </div>
+    <div class="tx-list" id="tx-recent"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Quién debe</div>
+      <button class="see-all" onclick="switchPage('clientes')">Ver todos →</button>
+    </div>
+    <div class="client-list" id="debtors-list"></div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: MOVIMIENTOS ═══════════ -->
+<div id="page-movimientos" class="page">
+  <div class="header">
+    <h1>Movimientos</h1>
+  </div>
+  <div style="padding: 16px 20px 0;">
+    <div class="modal-tabs" id="filter-tabs">
+      <button class="modal-tab active" onclick="filterTx('todos')">Todos</button>
+      <button class="modal-tab" onclick="filterTx('compra')">Compras</button>
+      <button class="modal-tab" onclick="filterTx('venta')">Ventas</button>
+      <button class="modal-tab" onclick="filterTx('pago')">Pagos</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="tx-list" id="tx-all"></div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: CLIENTES ═══════════ -->
+<div id="page-clientes" class="page">
+  <div class="header">
+    <h1>Clientes</h1>
+  </div>
+  <div style="padding: 16px 20px 0;">
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tab-all-clients" onclick="filterClients('todos')">Todos</button>
+      <button class="modal-tab" id="tab-clienta" onclick="filterClients('clienta')">Clientas</button>
+      <button class="modal-tab" id="tab-mesa" onclick="filterClients('mesa')">Mesas</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="client-list" id="clients-all"></div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: CLIENT DETAIL ═══════════ -->
+<div id="page-client-detail" class="page">
+  <div style="padding: 20px;">
+    <div class="detail-header">
+      <button class="back-btn" onclick="switchPage('clientes')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="client-detail-avatar" id="detail-avatar"></div>
+      <div>
+        <h2 style="font-family:'Outfit';font-size:20px;font-weight:800" id="detail-name"></h2>
+        <p style="font-size:13px;color:var(--text3)" id="detail-type"></p>
+      </div>
+    </div>
+    <div class="client-balance-card">
+      <div class="label">SALDO PENDIENTE</div>
+      <div class="balance" id="detail-balance"></div>
+    </div>
+    <div class="section-header" style="margin-bottom:14px">
+      <div class="section-title">Historial</div>
+    </div>
+    <div class="tx-list" id="detail-history"></div>
+  </div>
+</div>
+
+<!-- ═══════════ BOTTOM NAV ═══════════ -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-inicio" onclick="switchPage('inicio')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg>
+    Inicio
+  </button>
+  <button class="nav-item" id="nav-movimientos" onclick="switchPage('movimientos')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    Movimientos
+  </button>
+  <button class="nav-item" id="nav-clientes" onclick="switchPage('clientes')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    Clientes
+  </button>
+</nav>
+
+<!-- ═══════════ FAB ═══════════ -->
+<button class="fab" onclick="openModal()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<!-- ═══════════ MODAL: NUEVO REGISTRO ═══════════ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>Nuevo registro</h2>
+
+    <div class="modal-tabs" id="modal-type-tabs">
+      <button class="modal-tab active" onclick="setModalType('compra')">🛒 Compra</button>
+      <button class="modal-tab" onclick="setModalType('venta')">💰 Venta</button>
+      <button class="modal-tab" onclick="setModalType('pago')">💵 Pago</button>
+    </div>
+
+    <!-- COMPRA FORM -->
+    <div id="form-compra">
+      <div class="form-group">
+        <label>Proveedor</label>
+        <input type="text" id="compra-proveedor" placeholder="¿A quién le compraste?">
+      </div>
+      <div class="form-group">
+        <label>Producto</label>
+        <input type="text" id="compra-producto" placeholder="¿Qué producto?">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cantidad (kg/pz)</label>
+          <input type="number" id="compra-cantidad" placeholder="0" inputmode="decimal">
+        </div>
+        <div class="form-group">
+          <label>Precio unitario</label>
+          <input type="number" id="compra-precio" placeholder="$0" inputmode="decimal">
+        </div>
+      </div>
+      <button class="btn-submit" onclick="saveCompra()">Registrar compra</button>
+    </div>
+
+    <!-- VENTA FORM -->
+    <div id="form-venta" style="display:none">
+      <div class="form-group">
+        <label>Cliente / Mesa</label>
+        <input type="text" id="venta-cliente" placeholder="Nombre del cliente o mesa" list="client-suggestions">
+        <datalist id="client-suggestions"></datalist>
+      </div>
+      <div class="form-toggle">
+        <button class="toggle-btn active" onclick="setClientType('clienta')">Clienta</button>
+        <button class="toggle-btn" onclick="setClientType('mesa')">Mesa</button>
+      </div>
+      <div class="form-group">
+        <label>Producto</label>
+        <input type="text" id="venta-producto" placeholder="¿Qué le vendiste?">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cantidad</label>
+          <input type="number" id="venta-cantidad" placeholder="0" inputmode="decimal">
+        </div>
+        <div class="form-group">
+          <label>Precio total</label>
+          <input type="number" id="venta-total" placeholder="$0" inputmode="decimal">
+        </div>
+      </div>
+      <div class="form-toggle">
+        <button class="toggle-btn active" onclick="setPayStatus('pagado')">✅ Pagado</button>
+        <button class="toggle-btn" onclick="setPayStatus('fiado')">🔴 Fiado</button>
+      </div>
+      <button class="btn-submit" onclick="saveVenta()">Registrar venta</button>
+    </div>
+
+    <!-- PAGO FORM -->
+    <div id="form-pago" style="display:none">
+      <div class="form-group">
+        <label>Cliente / Mesa</label>
+        <input type="text" id="pago-cliente" placeholder="¿Quién te pagó?" list="client-suggestions-pago">
+        <datalist id="client-suggestions-pago"></datalist>
+      </div>
+      <div class="form-group">
+        <label>Monto del abono</label>
+        <input type="number" id="pago-monto" placeholder="$0" inputmode="decimal">
+      </div>
+      <button class="btn-submit" onclick="savePago()">Registrar pago</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════ DATA STORE ═══════════
+let data = {
+  compras: [],
+  ventas: [],
+  pagos: [],
+  clientes: {} // { name: { tipo, saldo, telefono } }
+};
+
+// Load from memory
+try {
+  const saved = localStorage.getItem('micentral_data');
+  if (saved) data = JSON.parse(saved);
+} catch(e) {}
+
+function save() {
+  try { localStorage.setItem('micentral_data', JSON.stringify(data)); } catch(e) {}
+}
+
+// ═══════════ DATE ═══════════
+function todayStr() {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+function formatDate(iso) {
+  const d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('es-MX', { day:'numeric', month:'short' });
+}
+function formatTime(iso) {
+  return new Date(iso).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
+}
+
+document.getElementById('today-date').textContent =
+  new Date().toLocaleDateString('es-MX', { weekday:'short', day:'numeric', month:'short' });
+
+// ═══════════ CURRENT STATE ═══════════
+let currentModalType = 'compra';
+let currentClientType = 'clienta';
+let currentPayStatus = 'pagado';
+let currentFilter = 'todos';
+let currentClientFilter = 'todos';
+
+// ═══════════ NAVIGATION ═══════════
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navBtn = document.getElementById('nav-' + page);
+  if (navBtn) navBtn.classList.add('active');
+  if (page === 'inicio') renderDashboard();
+  if (page === 'movimientos') renderAllTx();
+  if (page === 'clientes') renderAllClients();
+}
+
+// ═══════════ MODAL ═══════════
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('show');
+  setModalType('compra');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+function closeModalOutside(e) {
+  if (e.target === e.currentTarget) closeModal();
+}
+function setModalType(type) {
+  currentModalType = type;
+  document.querySelectorAll('#modal-type-tabs .modal-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('form-compra').style.display = type === 'compra' ? 'block' : 'none';
+  document.getElementById('form-venta').style.display = type === 'venta' ? 'block' : 'none';
+  document.getElementById('form-pago').style.display = type === 'pago' ? 'block' : 'none';
+  if (type === 'venta' || type === 'pago') updateClientSuggestions();
+}
+function setClientType(type) {
+  currentClientType = type;
+  document.querySelectorAll('#form-venta .toggle-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0 && type==='clienta') || (i===1 && type==='mesa'));
+  });
+}
+function setPayStatus(status) {
+  currentPayStatus = status;
+  const btns = document.querySelectorAll('#form-venta .form-toggle:last-of-type .toggle-btn');
+  btns[0].classList.toggle('active', status === 'pagado');
+  btns[1].classList.toggle('active', status === 'fiado');
+}
+
+// ═══════════ SUGGESTIONS ═══════════
+function updateClientSuggestions() {
+  const names = Object.keys(data.clientes);
+  ['client-suggestions', 'client-suggestions-pago'].forEach(id => {
+    const dl = document.getElementById(id);
+    dl.innerHTML = names.map(n => `<option value="${n}">`).join('');
+  });
+}
+
+// ═══════════ SAVE FUNCTIONS ═══════════
+function saveCompra() {
+  const proveedor = document.getElementById('compra-proveedor').value.trim();
+  const producto = document.getElementById('compra-producto').value.trim();
+  const cantidad = parseFloat(document.getElementById('compra-cantidad').value) || 0;
+  const precio = parseFloat(document.getElementById('compra-precio').value) || 0;
+  if (!producto || !cantidad || !precio) return alert('Completa todos los campos');
+
+  data.compras.push({
+    id: Date.now(),
+    fecha: new Date().toISOString(),
+    dia: todayStr(),
+    proveedor, producto, cantidad, precio,
+    total: cantidad * precio
+  });
+  save();
+  closeModal();
+  clearForm('compra');
+  renderDashboard();
+}
+
+function saveVenta() {
+  const cliente = document.getElementById('venta-cliente').value.trim();
+  const producto = document.getElementById('venta-producto').value.trim();
+  const cantidad = parseFloat(document.getElementById('venta-cantidad').value) || 0;
+  const total = parseFloat(document.getElementById('venta-total').value) || 0;
+  if (!cliente || !producto || !total) return alert('Completa todos los campos');
+
+  // Ensure client exists
+  if (!data.clientes[cliente]) {
+    data.clientes[cliente] = { tipo: currentClientType, saldo: 0 };
+  }
+
+  const esFiado = currentPayStatus === 'fiado';
+  if (esFiado) {
+    data.clientes[cliente].saldo += total;
+  }
+
+  data.ventas.push({
+    id: Date.now(),
+    fecha: new Date().toISOString(),
+    dia: todayStr(),
+    cliente, producto, cantidad, total,
+    tipo_cliente: currentClientType,
+    status: currentPayStatus
+  });
+  save();
+  closeModal();
+  clearForm('venta');
+  renderDashboard();
+}
+
+function savePago() {
+  const cliente = document.getElementById('pago-cliente').value.trim();
+  const monto = parseFloat(document.getElementById('pago-monto').value) || 0;
+  if (!cliente || !monto) return alert('Completa todos los campos');
+
+  if (!data.clientes[cliente]) {
+    data.clientes[cliente] = { tipo: 'clienta', saldo: 0 };
+  }
+  data.clientes[cliente].saldo = Math.max(0, data.clientes[cliente].saldo - monto);
+
+  data.pagos.push({
+    id: Date.now(),
+    fecha: new Date().toISOString(),
+    dia: todayStr(),
+    cliente, monto
+  });
+  save();
+  closeModal();
+  clearForm('pago');
+  renderDashboard();
+}
+
+function clearForm(type) {
+  if (type === 'compra') {
+    ['compra-proveedor','compra-producto','compra-cantidad','compra-precio'].forEach(id => document.getElementById(id).value = '');
+  } else if (type === 'venta') {
+    ['venta-cliente','venta-producto','venta-cantidad','venta-total'].forEach(id => document.getElementById(id).value = '');
+  } else {
+    ['pago-cliente','pago-monto'].forEach(id => document.getElementById(id).value = '');
+  }
+}
+
+// ═══════════ FORMATTING ═══════════
+function fmt(n) {
+  return '$' + Number(n).toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+// ═══════════ RENDER ═══════════
+function renderDashboard() {
+  const today = todayStr();
+
+  // Summary
+  const ventasHoy = data.ventas.filter(v => v.dia === today);
+  const comprasHoy = data.compras.filter(c => c.dia === today);
+  const pagosHoy = data.pagos.filter(p => p.dia === today);
+  const totalVentas = ventasHoy.reduce((s,v) => s + v.total, 0);
+  const totalCompras = comprasHoy.reduce((s,c) => s + c.total, 0);
+  const totalCobrado = pagosHoy.reduce((s,p) => s + p.monto, 0);
+  const deudores = Object.entries(data.clientes).filter(([,c]) => c.saldo > 0);
+  const totalFiado = deudores.reduce((s,[,c]) => s + c.saldo, 0);
+
+  document.getElementById('sum-ventas').textContent = fmt(totalVentas);
+  document.getElementById('sum-ventas-count').textContent = ventasHoy.length + ' operaciones';
+  document.getElementById('sum-fiado').textContent = fmt(totalFiado);
+  document.getElementById('sum-fiado-count').textContent = deudores.length + ' clientes';
+  document.getElementById('sum-compras').textContent = fmt(totalCompras);
+  document.getElementById('sum-compras-count').textContent = comprasHoy.length + ' entradas';
+  document.getElementById('sum-cobrado').textContent = fmt(totalCobrado);
+  document.getElementById('sum-cobrado-count').textContent = pagosHoy.length + ' pagos';
+
+  // Recent tx (last 5)
+  const allTx = getAllTx().slice(0, 5);
+  document.getElementById('tx-recent').innerHTML = allTx.length
+    ? allTx.map(renderTxItem).join('')
+    : '<div class="empty-state"><div class="emoji">📦</div><p>Sin movimientos aún.<br>Toca el botón + para empezar.</p></div>';
+
+  // Debtors
+  const sortedDebtors = deudores.sort((a,b) => b[1].saldo - a[1].saldo).slice(0, 5);
+  document.getElementById('debtors-list').innerHTML = sortedDebtors.length
+    ? sortedDebtors.map(([name, c]) => renderClientItem(name, c)).join('')
+    : '<div class="empty-state"><div class="emoji">✅</div><p>Nadie te debe. ¡Bien!</p></div>';
+}
+
+function getAllTx() {
+  const all = [
+    ...data.compras.map(c => ({...c, _type: 'compra'})),
+    ...data.ventas.map(v => ({...v, _type: 'venta'})),
+    ...data.pagos.map(p => ({...p, _type: 'pago'})),
+  ];
+  return all.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+}
+
+function renderTxItem(tx) {
+  if (tx._type === 'compra') {
+    return `<div class="tx-item">
+      <div class="tx-left">
+        <div class="tx-icon entrada">🛒</div>
+        <div class="tx-info">
+          <h4>${tx.producto}</h4>
+          <p>${tx.proveedor || 'Sin proveedor'} · ${formatDate(tx.dia)}</p>
+        </div>
+      </div>
+      <div class="tx-amount">
+        <div class="amount amount-red">-${fmt(tx.total)}</div>
+      </div>
+    </div>`;
+  } else if (tx._type === 'venta') {
+    return `<div class="tx-item">
+      <div class="tx-left">
+        <div class="tx-icon venta">💰</div>
+        <div class="tx-info">
+          <h4>${tx.producto}</h4>
+          <p>${tx.cliente} · ${formatDate(tx.dia)}</p>
+        </div>
+      </div>
+      <div class="tx-amount">
+        <div class="amount amount-green">+${fmt(tx.total)}</div>
+        <span class="badge ${tx.status === 'pagado' ? 'badge-pagado' : 'badge-fiado'}">${tx.status === 'pagado' ? 'Pagado' : 'Fiado'}</span>
+      </div>
+    </div>`;
+  } else {
+    return `<div class="tx-item">
+      <div class="tx-left">
+        <div class="tx-icon pago">💵</div>
+        <div class="tx-info">
+          <h4>Abono de ${tx.cliente}</h4>
+          <p>${formatDate(tx.dia)}</p>
+        </div>
+      </div>
+      <div class="tx-amount">
+        <div class="amount amount-orange">+${fmt(tx.monto)}</div>
+        <span class="badge badge-abono">Abono</span>
+      </div>
+    </div>`;
+  }
+}
+
+function renderClientItem(name, c) {
+  const initials = name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  return `<div class="client-item" onclick="showClientDetail('${name.replace(/'/g, "\\'")}')">
+    <div class="client-left">
+      <div class="client-avatar">${initials}</div>
+      <div class="client-info">
+        <h4>${name}</h4>
+        <p>${c.tipo === 'mesa' ? '🪑 Mesa' : '👤 Clienta'}</p>
+      </div>
+    </div>
+    <div class="client-debt">${c.saldo > 0 ? fmt(c.saldo) : '<span style="color:var(--green)">Al corriente</span>'}</div>
+  </div>`;
+}
+
+// ═══════════ ALL TRANSACTIONS ═══════════
+function renderAllTx() {
+  let txs = getAllTx();
+  if (currentFilter !== 'todos') txs = txs.filter(t => t._type === currentFilter);
+  document.getElementById('tx-all').innerHTML = txs.length
+    ? txs.map(renderTxItem).join('')
+    : '<div class="empty-state"><div class="emoji">📋</div><p>No hay movimientos de este tipo.</p></div>';
+}
+function filterTx(type) {
+  currentFilter = type;
+  document.querySelectorAll('#filter-tabs .modal-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  renderAllTx();
+}
+
+// ═══════════ ALL CLIENTS ═══════════
+function renderAllClients() {
+  let clients = Object.entries(data.clientes);
+  if (currentClientFilter !== 'todos') clients = clients.filter(([,c]) => c.tipo === currentClientFilter);
+  clients.sort((a,b) => b[1].saldo - a[1].saldo);
+  document.getElementById('clients-all').innerHTML = clients.length
+    ? clients.map(([name, c]) => renderClientItem(name, c)).join('')
+    : '<div class="empty-state"><div class="emoji">👥</div><p>Aún no hay clientes registrados.</p></div>';
+}
+function filterClients(type) {
+  currentClientFilter = type;
+  document.querySelectorAll('#page-clientes .modal-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  renderAllClients();
+}
+
+// ═══════════ CLIENT DETAIL ═══════════
+function showClientDetail(name) {
+  const client = data.clientes[name];
+  if (!client) return;
+  const initials = name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('detail-avatar').textContent = initials;
+  document.getElementById('detail-name').textContent = name;
+  document.getElementById('detail-type').textContent = client.tipo === 'mesa' ? '🪑 Mesa' : '👤 Clienta';
+  document.getElementById('detail-balance').textContent = fmt(client.saldo);
+
+  // History
+  const ventas = data.ventas.filter(v => v.cliente === name).map(v => ({...v, _type: 'venta'}));
+  const pagos = data.pagos.filter(p => p.cliente === name).map(p => ({...p, _type: 'pago'}));
+  const history = [...ventas, ...pagos].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+  document.getElementById('detail-history').innerHTML = history.length
+    ? history.map(renderTxItem).join('')
+    : '<div class="empty-state"><div class="emoji">📝</div><p>Sin historial aún.</p></div>';
+
+  switchPage('client-detail');
+}
+
+// ═══════════ INIT ═══════════
+renderDashboard();
+
+// ═══════════ PWA SERVICE WORKER ═══════════
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
