@@ -1602,7 +1602,72 @@ function fmt(n) {
 }
 
 // ═══════════ RENDER ═══════════
+// ═══════════ RECALCULATE BALANCES ═══════════
+function recalcBalances() {
+  // Recalculate each client's saldo from actual transactions
+  const clientNames = new Set([
+    ...data.ventas.map(v => v.cliente),
+    ...data.pagos.map(p => p.cliente)
+  ]);
+
+  clientNames.forEach(name => {
+    if (!name) return;
+    if (!data.clientes[name]) data.clientes[name] = { tipo: 'clienta', saldo: 0 };
+
+    // Total fiado = sum of ventas with status 'fiado'
+    const totalFiado = data.ventas
+      .filter(v => v.cliente === name && v.status === 'fiado')
+      .reduce((s, v) => s + Number(v.total), 0);
+
+    data.clientes[name].saldo = totalFiado;
+  });
+
+  // Auto-pay: check if total pagos can cover fiado ventas (oldest first)
+  clientNames.forEach(name => {
+    if (!name) return;
+    const totalPagos = data.pagos
+      .filter(p => p.cliente === name)
+      .reduce((s, p) => s + Number(p.monto), 0);
+    const totalPagado = data.ventas
+      .filter(v => v.cliente === name && v.status === 'pagado')
+      .reduce((s, v) => s + Number(v.total), 0);
+
+    // Available credit = total pagos - total already marked as pagado
+    let credit = totalPagos - totalPagado;
+    if (credit <= 0) return;
+
+    // Try to mark fiado ventas as pagado (oldest first)
+    const fiadoVentas = data.ventas
+      .filter(v => v.cliente === name && v.status === 'fiado')
+      .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+    let changed = false;
+    for (const venta of fiadoVentas) {
+      if (credit >= Number(venta.total)) {
+        venta.status = 'pagado';
+        credit -= Number(venta.total);
+        changed = true;
+        // Sync to Sheet
+        fetch(API_URL + '?action=editRow&sheet=Ventas&data=' + encodeURIComponent(JSON.stringify(venta))).catch(() => {});
+      }
+    }
+
+    // Recalculate saldo after status changes
+    if (changed) {
+      const newFiado = data.ventas
+        .filter(v => v.cliente === name && v.status === 'fiado')
+        .reduce((s, v) => s + Number(v.total), 0);
+      data.clientes[name].saldo = newFiado;
+      // Sync client to Sheet
+      apiCall('updateCliente', { nombre: name, tipo: data.clientes[name].tipo, saldo: data.clientes[name].saldo });
+    }
+  });
+
+  save();
+}
+
 function renderDashboard() {
+  recalcBalances();
   const today = todayStr();
 
   // Summary — force Number() on all values from Sheet
