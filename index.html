@@ -86,29 +86,54 @@ body {
   padding: 16px;
   border: 1px solid var(--border);
   transition: transform 0.2s;
+  position: relative;
+  overflow: hidden;
 }
 .summary-card:active { transform: scale(0.97); }
+.card-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+  font-size: 20px;
+}
+.card-icon-green { background: var(--green-bg); }
+.card-icon-red { background: var(--red-bg); }
+.card-icon-blue { background: var(--blue-bg); }
+.card-icon-orange { background: var(--orange-bg); }
+.card-icon-purple { background: var(--purple-bg); }
 .summary-card .label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text3);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 .summary-card .value {
   font-family: 'Outfit', sans-serif;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.5px;
 }
 .summary-card .sub {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text2);
-  margin-top: 4px;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
+.sub-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.sub-badge-green { background: var(--green-bg); color: var(--green); }
+.sub-badge-red { background: var(--red-bg); color: var(--red); }
 .card-green .value { color: var(--green); }
 .card-red .value { color: var(--red); }
 .card-blue .value { color: var(--blue); }
@@ -658,45 +683,60 @@ body {
     <div class="header-date" id="today-date"></div>
   </div>
 
+  <div style="padding:16px 20px 0;">
+    <p style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">RESUMEN DEL DÍA</p>
+    <h2 style="font-family:'Outfit';font-size:20px;font-weight:800;margin-bottom:16px">Dashboard</h2>
+  </div>
   <div class="summary">
     <div class="summary-card card-green">
-      <div class="label"><span class="dot dot-green"></span> Ventas hoy</div>
+      <div class="card-icon card-icon-green">📈</div>
+      <div class="label">Ventas hoy</div>
       <div class="value" id="sum-ventas">$0</div>
-      <div class="sub" id="sum-ventas-count">0 operaciones</div>
+      <div class="sub"><span class="sub-badge sub-badge-green" id="sum-ventas-count">0 ops</span></div>
     </div>
     <div class="summary-card card-red">
-      <div class="label"><span class="dot dot-red"></span> Fiado total</div>
+      <div class="card-icon card-icon-red">⚠️</div>
+      <div class="label">Fiado total</div>
       <div class="value" id="sum-fiado">$0</div>
-      <div class="sub" id="sum-fiado-count">0 clientes</div>
+      <div class="sub"><span class="sub-badge sub-badge-red" id="sum-fiado-count">0 clientes</span></div>
     </div>
     <div class="summary-card card-blue">
-      <div class="label"><span class="dot dot-blue"></span> Compras hoy</div>
+      <div class="card-icon card-icon-blue">🛒</div>
+      <div class="label">Compras hoy</div>
       <div class="value" id="sum-compras">$0</div>
-      <div class="sub" id="sum-compras-count">0 entradas</div>
+      <div class="sub"><span class="sub-badge" style="background:var(--blue-bg);color:var(--blue)" id="sum-compras-count">0 entradas</span></div>
     </div>
     <div class="summary-card card-orange">
-      <div class="label"><span class="dot dot-orange"></span> Cobrado hoy</div>
+      <div class="card-icon card-icon-orange">✅</div>
+      <div class="label">Cobrado hoy</div>
       <div class="value" id="sum-cobrado">$0</div>
-      <div class="sub" id="sum-cobrado-count">0 pagos</div>
+      <div class="sub"><span class="sub-badge" style="background:var(--orange-bg);color:var(--orange)" id="sum-cobrado-count">0 pagos</span></div>
     </div>
   </div>
   <div style="padding:0 20px 12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-    <div class="summary-card" style="border-color:var(--purple);background:var(--purple-bg);">
-      <div class="label"><span class="dot" style="background:var(--purple)"></span> Pollos vendidos</div>
-      <div class="value" style="color:var(--purple);font-size:28px" id="sum-pollos-qty">0</div>
+    <div class="summary-card" style="border-color:var(--purple)">
+      <div class="card-icon card-icon-purple">🐔</div>
+      <div class="label">Pollos vendidos</div>
+      <div class="value" style="color:var(--purple)" id="sum-pollos-qty">0</div>
       <div class="sub" id="sum-pollos-qty-sub">hoy</div>
     </div>
-    <div class="summary-card" style="border-color:var(--purple);background:var(--purple-bg);">
-      <div class="label"><span class="dot" style="background:var(--purple)"></span> Valor pollos</div>
-      <div class="value" style="color:var(--purple);font-size:28px" id="sum-pollos-val">$0</div>
+    <div class="summary-card" style="border-color:var(--purple)">
+      <div class="card-icon card-icon-purple">💰</div>
+      <div class="label">Valor pollos</div>
+      <div class="value" style="color:var(--purple)" id="sum-pollos-val">$0</div>
       <div class="sub" id="sum-pollos-val-sub">hoy</div>
     </div>
   </div>
   <div style="padding:0 20px 12px;">
-    <div class="summary-card card-red" style="width:100%">
-      <div class="label"><span class="dot dot-red"></span> Gastos hoy</div>
-      <div class="value" id="sum-gastos">$0</div>
-      <div class="sub" id="sum-gastos-count">0 gastos</div>
+    <div class="summary-card card-red">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="card-icon card-icon-red">🧾</div>
+        <div>
+          <div class="label">Gastos hoy</div>
+          <div class="value" id="sum-gastos">$0</div>
+          <div class="sub"><span class="sub-badge sub-badge-red" id="sum-gastos-count">0 gastos</span></div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="section">
@@ -1555,25 +1595,28 @@ function clearForm(type) {
 
 // ═══════════ FORMATTING ═══════════
 function fmt(n) {
-  return '$' + Number(n).toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const num = Number(n);
+  if (isNaN(num)) return '$0';
+  const hasDecimals = num % 1 !== 0;
+  return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: hasDecimals ? 2 : 0, maximumFractionDigits: 2 });
 }
 
 // ═══════════ RENDER ═══════════
 function renderDashboard() {
   const today = todayStr();
 
-  // Summary
+  // Summary — force Number() on all values from Sheet
   const ventasHoy = data.ventas.filter(v => v.dia === today);
   const comprasHoy = data.compras.filter(c => c.dia === today);
   const pagosHoy = data.pagos.filter(p => p.dia === today);
-  const totalVentas = ventasHoy.reduce((s,v) => s + v.total, 0);
-  const totalCompras = comprasHoy.reduce((s,c) => s + c.total, 0);
-  const totalCobrado = pagosHoy.reduce((s,p) => s + p.monto, 0);
-  const deudores = Object.entries(data.clientes).filter(([,c]) => c.saldo > 0);
-  const totalFiado = deudores.reduce((s,[,c]) => s + c.saldo, 0);
+  const totalVentas = ventasHoy.reduce((s,v) => s + Number(v.total), 0);
+  const totalCompras = comprasHoy.reduce((s,c) => s + Number(c.total), 0);
+  const totalCobrado = pagosHoy.reduce((s,p) => s + Number(p.monto), 0);
+  const deudores = Object.entries(data.clientes).filter(([,c]) => Number(c.saldo) > 0);
+  const totalFiado = deudores.reduce((s,[,c]) => s + Number(c.saldo), 0);
 
   document.getElementById('sum-ventas').textContent = fmt(totalVentas);
-  document.getElementById('sum-ventas-count').textContent = ventasHoy.length + ' operaciones';
+  document.getElementById('sum-ventas-count').textContent = ventasHoy.length + ' ops';
   document.getElementById('sum-fiado').textContent = fmt(totalFiado);
   document.getElementById('sum-fiado-count').textContent = deudores.length + ' clientes';
   document.getElementById('sum-compras').textContent = fmt(totalCompras);
@@ -1589,7 +1632,7 @@ function renderDashboard() {
 
   // Gastos
   const gastosHoy = (data.gastos || []).filter(g => g.dia === today);
-  const totalGastos = gastosHoy.reduce((s, g) => s + (g.total || 0), 0);
+  const totalGastos = gastosHoy.reduce((s, g) => s + (Number(g.total) || 0), 0);
   document.getElementById('sum-gastos').textContent = fmt(totalGastos);
   document.getElementById('sum-gastos-count').textContent = gastosHoy.length + ' gastos';
 
@@ -1816,15 +1859,25 @@ function saveEdit() {
 
 function renderClientItem(name, c) {
   const initials = name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  const saldo = Number(c.saldo);
+  // Find last payment
+  const lastPago = data.pagos.filter(p => p.cliente === name).sort((a,b) => new Date(b.fecha) - new Date(a.fecha))[0];
+  const lastPayInfo = lastPago ? 'Últ. pago: ' + formatDate(lastPago.dia) : 'Sin pagos';
+  const statusBadge = saldo > 0
+    ? '<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:var(--red-bg);color:var(--red);font-weight:600">PENDIENTE</span>'
+    : '<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:var(--green-bg);color:var(--green);font-weight:600">CORRIENTE</span>';
   return `<div class="client-item" onclick="showClientDetail('${name.replace(/'/g, "\\'")}')">
     <div class="client-left">
       <div class="client-avatar">${initials}</div>
       <div class="client-info">
         <h4>${name}</h4>
-        <p>${c.tipo === 'mesa' ? '🪑 Mesa' : '👤 Clienta'}</p>
+        <p>${lastPayInfo}</p>
       </div>
     </div>
-    <div class="client-debt">${c.saldo > 0 ? fmt(c.saldo) : '<span style="color:var(--green)">Al corriente</span>'}</div>
+    <div style="text-align:right">
+      <div class="client-debt">${saldo > 0 ? fmt(saldo) : '<span style="color:var(--green)">$0</span>'}</div>
+      ${statusBadge}
+    </div>
   </div>`;
 }
 
