@@ -946,6 +946,35 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
 .chart-legend-line {
   width: 16px; height: 0; border-top: 2px dashed var(--orange);
 }
+
+/* ── Client Selector Cards ── */
+.client-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; transition: all 0.15s;
+}
+.client-card:active { transform: scale(0.98); }
+.client-card.selected { border-color: var(--green); background: var(--green-bg); }
+.client-card-left { display: flex; align-items: center; gap: 10px; }
+.client-card-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--surface3);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; color: var(--text2);
+  font-family: 'Outfit', sans-serif;
+}
+.client-card.selected .client-card-avatar { background: var(--green); color: var(--bg); }
+.client-card-name { font-size: 14px; font-weight: 600; }
+.client-card-badge {
+  font-size: 9px; padding: 2px 6px; border-radius: 8px;
+  font-weight: 600; margin-left: 6px;
+}
+.client-card-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
 </style>
 </head>
 <body>
@@ -1311,7 +1340,11 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
     <div id="form-venta" style="display:none">
       <div class="form-group">
         <label>Cliente / Mesa</label>
-        <input type="text" id="venta-cliente" placeholder="Nombre del cliente o mesa" list="client-suggestions">
+        <div style="position:relative">
+          <input type="text" id="venta-cliente" placeholder="🔍 Buscar clienta..." oninput="filterClientCards()" onfocus="document.getElementById('client-cards').style.display='flex'" autocomplete="off">
+          <div id="client-cards" style="display:none;flex-direction:column;gap:6px;margin-top:8px;max-height:180px;overflow-y:auto"></div>
+          <input type="text" id="venta-cliente-nuevo" placeholder="+ Agregar nuevo cliente" style="margin-top:6px;font-size:12px;border:1px dashed var(--border);background:transparent" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter'){addNewClientFromInput();event.preventDefault()}">
+        </div>
         <datalist id="client-suggestions"></datalist>
       </div>
       <div class="form-toggle">
@@ -1858,6 +1891,7 @@ function openModalVenta() {
   setModalType('venta');
   // Auto-add first line
   if (ventaLines.length === 0) addVentaLine();
+  renderClientCards();
 }
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('show');
@@ -1876,6 +1910,7 @@ function setModalType(type) {
   if (type === 'venta') {
     if (ventaLines.length === 0) addVentaLine();
     updateClientSuggestions();
+    renderClientCards();
   }
   if (type === 'pago') updateClientSuggestions();
 }
@@ -2862,9 +2897,9 @@ function saveGastoEdit() {
 
 // ═══════════ TICKET DETAIL (FIADO) ═══════════
 function showTicketDetail(clienteName, ventaId) {
-  // Get all fiado ventas for this client
-  const ventasFiadas = data.ventas
-    .filter(v => v.cliente === clienteName && (v.status === 'fiado' || v.status === 'pagado'))
+  // Get all ventas originally fiado for this client (fiado + auto-paid)
+  const ventasOriginFiado = data.ventas
+    .filter(v => v.cliente === clienteName && v._originalStatus === 'fiado')
     .sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
 
   // Get all pagos for this client
@@ -2872,15 +2907,10 @@ function showTicketDetail(clienteName, ventaId) {
     .filter(p => p.cliente === clienteName)
     .sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
 
-  // Calculate totals
-  const totalFiado = data.ventas
-    .filter(v => v.cliente === clienteName && (v.status === 'fiado'))
-    .reduce((s,v) => s + Number(v.total), 0);
+  // Calculate totals — only originally fiado ventas count as "debt"
+  const totalOriginal = ventasOriginFiado.reduce((s,v) => s + Number(v.total), 0);
   const totalPagado = pagosCliente.reduce((s,p) => s + Number(p.monto), 0);
-  const totalOriginal = data.ventas
-    .filter(v => v.cliente === clienteName && (v.status === 'fiado' || v.status === 'pagado'))
-    .reduce((s,v) => s + Number(v.total), 0);
-  const saldoActual = Math.max(0, totalFiado);
+  const saldoActual = Math.max(0, totalOriginal - totalPagado);
 
   let html = '';
 
@@ -2900,20 +2930,26 @@ function showTicketDetail(clienteName, ventaId) {
     </div>
   </div>`;
 
-  // Ventas fiadas list
-  html += '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">VENTAS FIADAS</div>';
-  const currentFiadas = data.ventas.filter(v => v.cliente === clienteName && v.status === 'fiado');
-  if (currentFiadas.length > 0) {
-    html += currentFiadas.map(v => `
-      <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border)">
+  // Ventas list (all originally fiado)
+  html += '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">VENTAS A CRÉDITO</div>';
+  if (ventasOriginFiado.length > 0) {
+    html += ventasOriginFiado.map(v => {
+      const isPaid = v.status === 'pagado';
+      const borderColor = isPaid ? 'var(--green-border)' : 'var(--border)';
+      const amountColor = isPaid ? 'var(--green)' : 'var(--red)';
+      const badge = isPaid
+        ? '<span style="font-size:9px;padding:2px 6px;border-radius:8px;background:var(--green-bg);color:var(--green);font-weight:600;margin-left:6px">PAGADO</span>'
+        : '<span style="font-size:9px;padding:2px 6px;border-radius:8px;background:var(--red-bg);color:var(--red);font-weight:600;margin-left:6px">PENDIENTE</span>';
+      return `<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;border:1px solid ${borderColor}">
         <div>
-          <div style="font-size:13px;font-weight:600">${v.producto}</div>
+          <div style="font-size:13px;font-weight:600">${v.producto}${badge}</div>
           <div style="font-size:11px;color:var(--text3)">${v.cantidad || ''} pz · ${formatDate(v.dia)}</div>
         </div>
-        <div style="font-family:'Outfit';font-weight:700;color:var(--red)">${fmt(v.total)}</div>
-      </div>`).join('');
+        <div style="font-family:'Outfit';font-weight:700;color:${amountColor}">${fmt(v.total)}</div>
+      </div>`;
+    }).join('');
   } else {
-    html += '<div style="text-align:center;color:var(--text3);font-size:13px;padding:12px">Sin ventas fiadas pendientes</div>';
+    html += '<div style="text-align:center;color:var(--text3);font-size:13px;padding:12px">Sin ventas a crédito</div>';
   }
 
   // Abonos list
@@ -2939,6 +2975,76 @@ function showTicketDetail(clienteName, ventaId) {
 function closeTicketDetail() {
   document.getElementById('ticket-detail-overlay').classList.remove('show');
 }
+
+// ═══════════ CLIENT CARD SELECTOR ═══════════
+function renderClientCards() {
+  const container = document.getElementById('client-cards');
+  if (!container) return;
+  const clients = Object.entries(data.clientes);
+  const search = (document.getElementById('venta-cliente').value || '').toLowerCase();
+
+  const filtered = clients.filter(([name]) => name.toLowerCase().includes(search));
+
+  if (filtered.length === 0 && !search) {
+    container.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:12px">Sin clientes aún. Escribe un nombre abajo.</div>';
+    container.style.display = 'flex';
+    return;
+  }
+
+  container.innerHTML = filtered.map(([name, c]) => {
+    const initials = name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+    const saldo = Number(c.saldo);
+    const totalVentas = data.ventas.filter(v => v.cliente === name).length;
+    let badge = '<span class="client-card-badge" style="background:var(--surface3);color:var(--text3)">NUEVO</span>';
+    if (totalVentas >= 20) badge = '<span class="client-card-badge" style="background:var(--green-bg);color:var(--green)">VIP</span>';
+    else if (totalVentas >= 5) badge = '<span class="client-card-badge" style="background:var(--blue-bg);color:var(--blue)">FRECUENTE</span>';
+    const dotColor = saldo > 0 ? 'var(--red)' : 'var(--green)';
+    const selected = document.getElementById('venta-cliente').value === name ? ' selected' : '';
+
+    return `<div class="client-card${selected}" onclick="selectClientCard('${name.replace(/'/g,"\\'")}')">
+      <div class="client-card-left">
+        <div class="client-card-avatar">${initials}</div>
+        <div>
+          <div class="client-card-name">${name}${badge}</div>
+          <div style="font-size:11px;color:var(--text3)">${saldo > 0 ? 'Debe: ' + fmt(saldo) : 'Al corriente'}</div>
+        </div>
+      </div>
+      <div class="client-card-dot" style="background:${dotColor}"></div>
+    </div>`;
+  }).join('');
+  container.style.display = 'flex';
+}
+
+function selectClientCard(name) {
+  document.getElementById('venta-cliente').value = name;
+  document.getElementById('client-cards').style.display = 'none';
+  // Set client type based on existing data
+  if (data.clientes[name]) {
+    setClientType(data.clientes[name].tipo || 'clienta');
+  }
+}
+
+function filterClientCards() {
+  renderClientCards();
+}
+
+function addNewClientFromInput() {
+  const input = document.getElementById('venta-cliente-nuevo');
+  const name = input.value.trim();
+  if (!name) return;
+  document.getElementById('venta-cliente').value = name;
+  input.value = '';
+  document.getElementById('client-cards').style.display = 'none';
+}
+
+// Close cards when clicking outside
+document.addEventListener('click', (e) => {
+  const cards = document.getElementById('client-cards');
+  const input = document.getElementById('venta-cliente');
+  if (cards && input && !cards.contains(e.target) && e.target !== input) {
+    cards.style.display = 'none';
+  }
+});
 
 // ═══════════ THEME TOGGLE ═══════════
 function toggleTheme() {
