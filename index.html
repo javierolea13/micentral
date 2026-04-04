@@ -1133,6 +1133,26 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
       <div class="balance" id="detail-balance"></div>
       <button class="btn-submit" style="margin-top:12px;max-width:200px;margin-left:auto;margin-right:auto;display:block;font-size:14px;padding:10px" onclick="quickPago()">💵 Registrar abono</button>
     </div>
+
+    <!-- Contact Info -->
+    <div id="detail-contact-card" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">INFORMACIÓN DE CONTACTO</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:16px">📱</span>
+          <input type="tel" id="detail-telefono" placeholder="Teléfono principal" onchange="saveClientContact()" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px">
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:16px">🆘</span>
+          <input type="tel" id="detail-emergencia" placeholder="Contacto de emergencia" onchange="saveClientContact()" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px">
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:16px">🎂</span>
+          <input type="date" id="detail-cumple" onchange="saveClientContact()" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px">
+        </div>
+      </div>
+    </div>
+
     <!-- Pollo Chart -->
     <div id="detail-pollo-chart"></div>
 
@@ -1363,6 +1383,21 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
     <div style="display:flex;gap:8px">
       <button class="btn-submit" style="flex:1;background:var(--surface3);color:var(--text2)" onclick="closeAddProduct()">Cancelar</button>
       <button class="btn-submit" style="flex:1" onclick="confirmAddProduct()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: CONFIRMAR ELIMINAR ═══════════ -->
+<div class="mini-modal" id="delete-confirm-modal">
+  <div class="mini-modal-content">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:40px;margin-bottom:8px">🗑️</div>
+      <h3 style="margin-bottom:6px" id="delete-confirm-title">¿Eliminar movimiento?</h3>
+      <p style="font-size:13px;color:var(--text3)" id="delete-confirm-desc">Esta acción no se puede deshacer</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-submit" style="flex:1;background:var(--surface3);color:var(--text2)" onclick="closeDeleteConfirm()">Cancelar</button>
+      <button class="btn-submit" style="flex:1;background:var(--red);color:white" onclick="confirmDelete()">Eliminar</button>
     </div>
   </div>
 </div>
@@ -2206,36 +2241,61 @@ function renderTxItem(tx) {
 }
 
 // ═══════════ DELETE TRANSACTION ═══════════
+let pendingDelete = null;
+
 function deleteTx(type, id) {
-  if (!confirm('¿Eliminar este movimiento?')) return;
+  // Find tx info for description
+  let desc = '';
+  if (type === 'compra') { const t = data.compras.find(c => c.id === id); desc = t ? t.producto : ''; }
+  else if (type === 'venta') { const t = data.ventas.find(v => v.id === id); desc = t ? (t.producto + ' - ' + t.cliente) : ''; }
+  else if (type === 'pago') { const t = data.pagos.find(p => p.id === id); desc = t ? ('Abono de ' + t.cliente) : ''; }
+  else if (type === 'gasto') { const t = (data.gastos||[]).find(g => g.id === id); desc = t ? t.descripcion : ''; }
+
+  pendingDelete = { type, id };
+  document.getElementById('delete-confirm-title').textContent = '¿Eliminar ' + type + '?';
+  document.getElementById('delete-confirm-desc').textContent = desc || 'Esta acción no se puede deshacer';
+  document.getElementById('delete-confirm-modal').classList.add('show');
+}
+
+function closeDeleteConfirm() {
+  document.getElementById('delete-confirm-modal').classList.remove('show');
+  pendingDelete = null;
+}
+
+function confirmDelete() {
+  if (!pendingDelete) return;
+  const { type, id } = pendingDelete;
+  closeDeleteConfirm();
   showSyncIndicator('Eliminando...');
-  
-  const sheetMap = { compra: 'Compras', venta: 'Ventas', pago: 'Pagos' };
-  
+
+  const sheetMap = { compra: 'Compras', venta: 'Ventas', pago: 'Pagos', gasto: 'Gastos' };
+
   if (type === 'compra') {
     data.compras = data.compras.filter(c => c.id !== id);
   } else if (type === 'venta') {
     const venta = data.ventas.find(v => v.id === id);
     if (venta && venta.status === 'fiado' && data.clientes[venta.cliente]) {
-      data.clientes[venta.cliente].saldo = Math.max(0, data.clientes[venta.cliente].saldo - venta.total);
+      data.clientes[venta.cliente].saldo = Math.max(0, data.clientes[venta.cliente].saldo - Number(venta.total));
       apiCall('updateCliente', { nombre: venta.cliente, tipo: data.clientes[venta.cliente].tipo, saldo: data.clientes[venta.cliente].saldo });
     }
     data.ventas = data.ventas.filter(v => v.id !== id);
   } else if (type === 'pago') {
     const pago = data.pagos.find(p => p.id === id);
     if (pago && data.clientes[pago.cliente]) {
-      data.clientes[pago.cliente].saldo += pago.monto;
+      data.clientes[pago.cliente].saldo += Number(pago.monto);
       apiCall('updateCliente', { nombre: pago.cliente, tipo: data.clientes[pago.cliente].tipo, saldo: data.clientes[pago.cliente].saldo });
     }
     data.pagos = data.pagos.filter(p => p.id !== id);
+  } else if (type === 'gasto') {
+    data.gastos = (data.gastos||[]).filter(g => g.id !== id);
   }
-  
+
   // Delete from Sheet
   fetch(API_URL + '?action=deleteRow&sheet=' + sheetMap[type] + '&id=' + id)
     .then(r => r.json())
-    .then(r => { hideSyncIndicator(); })
+    .then(() => hideSyncIndicator())
     .catch(() => hideSyncIndicator());
-  
+
   save();
   renderDashboard();
   renderAllTx();
@@ -2263,13 +2323,15 @@ function editTx(type, id) {
       </div>
       <button class="btn-submit" onclick="saveEdit()">Guardar cambios</button>`;
   } else if (type === 'venta') {
+    const precioUnit = tx.cantidad ? (tx.total / tx.cantidad) : 0;
     body = `
       <div class="form-group"><label>Cliente</label><input type="text" id="edit-cliente" value="${tx.cliente || ''}"></div>
       <div class="form-group"><label>Producto</label><input type="text" id="edit-producto" value="${tx.producto || ''}"></div>
       <div class="form-row">
-        <div class="form-group"><label>Cantidad</label><input type="number" id="edit-cantidad" value="${tx.cantidad || 0}" inputmode="decimal"></div>
-        <div class="form-group"><label>Precio total</label><input type="number" id="edit-total" value="${tx.total || 0}" inputmode="decimal"></div>
+        <div class="form-group"><label>Cantidad</label><input type="number" id="edit-cantidad" value="${tx.cantidad || 0}" inputmode="decimal" oninput="calcEditTotal()"></div>
+        <div class="form-group"><label>Precio unit.</label><input type="number" id="edit-precio" value="${precioUnit}" inputmode="decimal" oninput="calcEditTotal()"></div>
       </div>
+      <div style="text-align:right;font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:var(--green);margin:8px 0" id="edit-total-display">Total: ${fmt(tx.total)}</div>
       <button class="btn-submit" onclick="saveEdit()">Guardar cambios</button>`;
   } else {
     body = `
@@ -2280,6 +2342,13 @@ function editTx(type, id) {
   document.getElementById('edit-modal-title').textContent = 'Editar ' + type;
   document.getElementById('edit-modal-body').innerHTML = body;
   document.getElementById('edit-modal-overlay').classList.add('show');
+}
+
+function calcEditTotal() {
+  const cant = parseFloat(document.getElementById('edit-cantidad').value) || 0;
+  const precio = parseFloat(document.getElementById('edit-precio').value) || 0;
+  const el = document.getElementById('edit-total-display');
+  if (el) el.textContent = 'Total: ' + fmt(cant * precio);
 }
 
 function closeEditModal() {
@@ -2307,7 +2376,8 @@ function saveEdit() {
       tx.cliente = document.getElementById('edit-cliente').value.trim();
       tx.producto = document.getElementById('edit-producto').value.trim();
       tx.cantidad = parseFloat(document.getElementById('edit-cantidad').value) || 0;
-      tx.total = parseFloat(document.getElementById('edit-total').value) || 0;
+      const editPrecio = parseFloat(document.getElementById('edit-precio').value) || 0;
+      tx.total = tx.cantidad * editPrecio;
       // Adjust fiado if needed
       if (oldStatus === 'fiado' && data.clientes[tx.cliente]) {
         data.clientes[tx.cliente].saldo += (tx.total - oldTotal);
@@ -2355,23 +2425,29 @@ function saveEdit() {
 function renderClientItem(name, c) {
   const initials = name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
   const saldo = Number(c.saldo);
-  // Find last payment
   const lastPago = data.pagos.filter(p => p.cliente === name).sort((a,b) => new Date(b.fecha) - new Date(a.fecha))[0];
-  const lastPayInfo = lastPago ? 'Últ. pago: ' + formatDate(lastPago.dia) : 'Sin pagos';
-  const statusBadge = saldo > 0
-    ? '<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:var(--red-bg);color:var(--red);font-weight:600">PENDIENTE</span>'
-    : '<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:var(--green-bg);color:var(--green);font-weight:600">CORRIENTE</span>';
+  const lastVisit = lastPago ? formatDate(lastPago.dia) : '—';
+  // Frequency badge
+  const totalVentas = data.ventas.filter(v => v.cliente === name).length;
+  let freqBadge = '<span style="font-size:9px;padding:2px 8px;border-radius:10px;background:var(--surface3);color:var(--text3);font-weight:600">NUEVO</span>';
+  if (totalVentas >= 20) freqBadge = '<span style="font-size:9px;padding:2px 8px;border-radius:10px;background:var(--green-bg);color:var(--green);font-weight:600">VIP</span>';
+  else if (totalVentas >= 5) freqBadge = '<span style="font-size:9px;padding:2px 8px;border-radius:10px;background:var(--blue-bg);color:var(--blue);font-weight:600">FRECUENTE</span>';
+  // Status dot
+  const dotColor = saldo > 0 ? 'var(--red)' : 'var(--green)';
+
   return `<div class="client-item" onclick="showClientDetail('${name.replace(/'/g, "\\'")}')">
     <div class="client-left">
       <div class="client-avatar">${initials}</div>
       <div class="client-info">
-        <h4>${name}</h4>
-        <p>${lastPayInfo}</p>
+        <h4>${name} ${freqBadge}</h4>
+        <p>Última visita: ${lastVisit}</p>
       </div>
     </div>
-    <div style="text-align:right">
-      <div class="client-debt">${saldo > 0 ? fmt(saldo) : '<span style="color:var(--green)">$0</span>'}</div>
-      ${statusBadge}
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="text-align:right">
+        <div class="client-debt">${saldo > 0 ? fmt(saldo) : '<span style="color:var(--green)">$0</span>'}</div>
+      </div>
+      <div style="width:12px;height:12px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
     </div>
   </div>`;
 }
@@ -2408,14 +2484,22 @@ function filterClients(type) {
 }
 
 // ═══════════ CLIENT DETAIL ═══════════
+let currentDetailClient = '';
+
 function showClientDetail(name) {
   const client = data.clientes[name];
   if (!client) return;
+  currentDetailClient = name;
   const initials = name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('detail-avatar').textContent = initials;
   document.getElementById('detail-name').textContent = name;
   document.getElementById('detail-type').textContent = client.tipo === 'mesa' ? '🪑 Mesa' : '👤 Clienta';
   document.getElementById('detail-balance').textContent = fmt(client.saldo);
+
+  // Contact fields
+  document.getElementById('detail-telefono').value = client.telefono || '';
+  document.getElementById('detail-emergencia').value = client.emergencia || '';
+  document.getElementById('detail-cumple').value = client.cumple || '';
 
   // History
   const ventas = data.ventas.filter(v => v.cliente === name).map(v => ({...v, _type: 'venta'}));
@@ -2429,6 +2513,15 @@ function showClientDetail(name) {
   renderPolloChart(name);
 
   switchPage('client-detail');
+}
+
+function saveClientContact() {
+  if (!currentDetailClient || !data.clientes[currentDetailClient]) return;
+  const c = data.clientes[currentDetailClient];
+  c.telefono = document.getElementById('detail-telefono').value.trim();
+  c.emergencia = document.getElementById('detail-emergencia').value.trim();
+  c.cumple = document.getElementById('detail-cumple').value;
+  save();
 }
 
 // ═══════════ ABONO MODAL ═══════════
@@ -2659,14 +2752,7 @@ function saveGasto() {
 }
 
 function deleteGasto(id) {
-  if (!confirm('¿Eliminar este gasto?')) return;
-  data.gastos = data.gastos.filter(g => g.id !== id);
-  save();
-  renderGastosList();
-  renderDashboard();
-  showSyncIndicator('Eliminando...');
-  fetch(API_URL + '?action=deleteRow&sheet=Gastos&id=' + id)
-    .then(r => r.json()).then(() => hideSyncIndicator()).catch(() => hideSyncIndicator());
+  deleteTx('gasto', id);
 }
 
 function editGasto(id) {
