@@ -1582,6 +1582,7 @@ async function loadFromSheets() {
       productos = result.productos;
       saveProductos();
     }
+    backfillOriginalStatus();
     // Also save locally as cache
     try { localStorage.setItem('micentral_data', JSON.stringify(data)); } catch(e) {}
     renderDashboard();
@@ -1605,10 +1606,28 @@ function hideSyncIndicator() {
   if (el) setTimeout(() => el.style.display = 'none', 800);
 }
 
+// Backfill _originalStatus for existing ventas that don't have it
+function backfillOriginalStatus() {
+  data.ventas.forEach(v => {
+    if (!v._originalStatus) {
+      // If a venta is currently 'fiado', it was definitely originally fiado
+      if (v.status === 'fiado') {
+        v._originalStatus = 'fiado';
+      } else if (v.status === 'pagado') {
+        // Check if this client has pagos — if yes, this venta might have been auto-paid from fiado
+        const hasPagos = data.pagos.some(p => p.cliente === v.cliente);
+        // If no pagos exist for this client, it was a cash sale (originally pagado)
+        v._originalStatus = hasPagos ? 'fiado' : 'pagado';
+      }
+    }
+  });
+}
+
 // Load from localStorage first (instant), then sync from Sheets
 try {
   const saved = localStorage.getItem('micentral_data');
   if (saved) data = JSON.parse(saved);
+  backfillOriginalStatus();
 } catch(e) {}
 
 function save() {
@@ -1923,7 +1942,8 @@ function saveVenta() {
       cantidad: l.cantidad,
       total: l.subtotal,
       tipo_cliente: currentClientType,
-      status: currentPayStatus
+      status: currentPayStatus,
+      _originalStatus: currentPayStatus
     };
     data.ventas.push(row);
     if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
@@ -2093,20 +2113,24 @@ function recalcBalances() {
     if (!name) return;
     if (!data.clientes[name]) data.clientes[name] = { tipo: 'clienta', saldo: 0 };
 
-    // Total fiado = ALL ventas marked as fiado
-    const totalFiado = data.ventas
+    // Step 1: Reset ventas originally created as fiado back to fiado
+    // This allows correct re-evaluation when pagos are added or removed
+    data.ventas.forEach(v => {
+      if (v.cliente === name && v.status === 'pagado' && v._originalStatus === 'fiado') {
+        v.status = 'fiado';
+      }
+    });
+
+    // Step 2: Get total of all fiado ventas and total pagos
+    const totalFiadoVentas = data.ventas
       .filter(v => v.cliente === name && v.status === 'fiado')
       .reduce((s, v) => s + Number(v.total), 0);
 
-    // Total abonos = ALL pagos for this client
     const totalPagos = data.pagos
       .filter(p => p.cliente === name)
       .reduce((s, p) => s + Number(p.monto), 0);
 
-    // Real saldo = fiado - pagos (cap at 0)
-    const realSaldo = Math.max(0, totalFiado - totalPagos);
-
-    // Auto-pay: use pagos to mark fiado ventas as pagado (oldest first)
+    // Step 3: Auto-pay oldest fiado ventas with available credit
     let credit = totalPagos;
     const fiadoVentas = data.ventas
       .filter(v => v.cliente === name && v.status === 'fiado')
@@ -2117,12 +2141,11 @@ function recalcBalances() {
         venta.status = 'pagado';
         credit -= Number(venta.total);
         needsSync = true;
-        // Sync venta status to Sheet
         fetch(API_URL + '?action=editRow&sheet=Ventas&data=' + encodeURIComponent(JSON.stringify(venta))).catch(() => {});
       }
     }
 
-    // Recalculate after status changes
+    // Step 4: Calculate final saldo
     const newFiado = data.ventas
       .filter(v => v.cliente === name && v.status === 'fiado')
       .reduce((s, v) => s + Number(v.total), 0);
