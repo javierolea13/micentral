@@ -2210,11 +2210,11 @@ function recalcBalances() {
       }
     }
 
-    // Step 4: Calculate final saldo
-    const newFiado = data.ventas
-      .filter(v => v.cliente === name && v.status === 'fiado')
+    // Step 4: Calculate final saldo = all originally fiado - all pagos
+    const allOrigFiado = data.ventas
+      .filter(v => v.cliente === name && v._originalStatus === 'fiado')
       .reduce((s, v) => s + Number(v.total), 0);
-    const newSaldo = Math.max(0, newFiado);
+    const newSaldo = Math.max(0, allOrigFiado - totalPagos);
 
     if (data.clientes[name].saldo !== newSaldo) {
       data.clientes[name].saldo = newSaldo;
@@ -2897,64 +2897,71 @@ function saveGastoEdit() {
 
 // ═══════════ TICKET DETAIL (FIADO) ═══════════
 function showTicketDetail(clienteName, ventaId) {
-  // Get all ventas originally fiado for this client (fiado + auto-paid)
-  const ventasOriginFiado = data.ventas
-    .filter(v => v.cliente === clienteName && v._originalStatus === 'fiado')
-    .sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+  // Find the specific venta that was clicked
+  const venta = data.ventas.find(v => v.id === ventaId);
+  if (!venta) return;
 
-  // Get all pagos for this client
+  // Get pagos for this client, sorted by date
   const pagosCliente = data.pagos
     .filter(p => p.cliente === clienteName)
     .sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
 
-  // Calculate totals — only originally fiado ventas count as "debt"
-  const totalOriginal = ventasOriginFiado.reduce((s,v) => s + Number(v.total), 0);
-  const totalPagado = pagosCliente.reduce((s,p) => s + Number(p.monto), 0);
-  const saldoActual = Math.max(0, totalOriginal - totalPagado);
+  // Calculate how pagos apply to this specific venta
+  // Walk through all originally-fiado ventas oldest first, consume pagos
+  const allFiadoVentas = data.ventas
+    .filter(v => v.cliente === clienteName && v._originalStatus === 'fiado')
+    .sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+
+  // Distribute pagos across ventas to find which pagos cover this venta
+  let totalPagosPool = 0;
+  const ventaAbonos = []; // pagos that apply to THIS venta
+  let abonadoEstaVenta = 0;
+
+  // Simple approach: calculate total paid before this venta gets covered
+  let pagosUsados = 0;
+  let montoAntes = 0; // total of ventas before this one
+  for (const v of allFiadoVentas) {
+    if (v.id === ventaId) break;
+    montoAntes += Number(v.total);
+  }
+
+  // Pagos that go toward this venta = pagos after covering previous ventas
+  let creditRemaining = pagosCliente.reduce((s,p) => s + Number(p.monto), 0);
+  // Credit available after covering previous ventas
+  let creditForThis = Math.max(0, creditRemaining - montoAntes);
+  abonadoEstaVenta = Math.min(creditForThis, Number(venta.total));
+
+  const saldoVenta = Math.max(0, Number(venta.total) - abonadoEstaVenta);
+  const isPaid = saldoVenta === 0;
 
   let html = '';
 
-  // Summary card
+  // Venta info
   html += `<div style="background:var(--surface2);border-radius:var(--radius);padding:16px;margin-bottom:16px">
-    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-      <span style="font-size:12px;color:var(--text3)">TOTAL ORIGINAL</span>
-      <span style="font-family:'Outfit';font-weight:700;font-size:16px">${fmt(totalOriginal)}</span>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div>
+        <div style="font-size:16px;font-weight:700">${venta.producto}</div>
+        <div style="font-size:12px;color:var(--text3)">${venta.cantidad || ''} pz × ${venta.cantidad ? fmt(venta.total / venta.cantidad) : ''} · ${formatDate(venta.dia)}</div>
+      </div>
+      <div style="font-size:9px;padding:3px 8px;border-radius:8px;font-weight:600;${isPaid ? 'background:var(--green-bg);color:var(--green)' : 'background:var(--red-bg);color:var(--red)'}">${isPaid ? 'PAGADO' : 'PENDIENTE'}</div>
     </div>
-    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-      <span style="font-size:12px;color:var(--green)">ABONOS REALIZADOS</span>
-      <span style="font-family:'Outfit';font-weight:700;font-size:16px;color:var(--green)">-${fmt(totalPagado)}</span>
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:12px;color:var(--text3)">MONTO ORIGINAL</span>
+      <span style="font-family:'Outfit';font-weight:700;font-size:16px">${fmt(venta.total)}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:12px;color:var(--green)">ABONADO</span>
+      <span style="font-family:'Outfit';font-weight:700;font-size:16px;color:var(--green)">-${fmt(abonadoEstaVenta)}</span>
     </div>
     <div style="border-top:1px solid var(--border);padding-top:8px;display:flex;justify-content:space-between">
-      <span style="font-size:13px;font-weight:700;color:var(--red)">SALDO PENDIENTE</span>
-      <span style="font-family:'Outfit';font-weight:800;font-size:20px;color:var(--red)">${fmt(saldoActual)}</span>
+      <span style="font-size:13px;font-weight:700;color:${saldoVenta > 0 ? 'var(--red)' : 'var(--green)'}">SALDO</span>
+      <span style="font-family:'Outfit';font-weight:800;font-size:22px;color:${saldoVenta > 0 ? 'var(--red)' : 'var(--green)'}">${fmt(saldoVenta)}</span>
     </div>
   </div>`;
 
-  // Ventas list (all originally fiado)
-  html += '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">VENTAS A CRÉDITO</div>';
-  if (ventasOriginFiado.length > 0) {
-    html += ventasOriginFiado.map(v => {
-      const isPaid = v.status === 'pagado';
-      const borderColor = isPaid ? 'var(--green-border)' : 'var(--border)';
-      const amountColor = isPaid ? 'var(--green)' : 'var(--red)';
-      const badge = isPaid
-        ? '<span style="font-size:9px;padding:2px 6px;border-radius:8px;background:var(--green-bg);color:var(--green);font-weight:600;margin-left:6px">PAGADO</span>'
-        : '<span style="font-size:9px;padding:2px 6px;border-radius:8px;background:var(--red-bg);color:var(--red);font-weight:600;margin-left:6px">PENDIENTE</span>';
-      return `<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;border:1px solid ${borderColor}">
-        <div>
-          <div style="font-size:13px;font-weight:600">${v.producto}${badge}</div>
-          <div style="font-size:11px;color:var(--text3)">${v.cantidad || ''} pz · ${formatDate(v.dia)}</div>
-        </div>
-        <div style="font-family:'Outfit';font-weight:700;color:${amountColor}">${fmt(v.total)}</div>
-      </div>`;
-    }).join('');
-  } else {
-    html += '<div style="text-align:center;color:var(--text3);font-size:13px;padding:12px">Sin ventas a crédito</div>';
-  }
-
-  // Abonos list
-  html += '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin:16px 0 8px">ABONOS REALIZADOS</div>';
+  // Abonos list — show all pagos for this client with date
   if (pagosCliente.length > 0) {
+    html += '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">ABONOS DEL CLIENTE</div>';
     html += pagosCliente.map(p => `
       <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--green-border)">
         <div>
@@ -2963,11 +2970,9 @@ function showTicketDetail(clienteName, ventaId) {
         </div>
         <div style="font-family:'Outfit';font-weight:700;color:var(--green)">+${fmt(p.monto)}</div>
       </div>`).join('');
-  } else {
-    html += '<div style="text-align:center;color:var(--text3);font-size:13px;padding:12px">Sin abonos aún</div>';
   }
 
-  document.getElementById('ticket-detail-title').textContent = 'Cuenta de ' + clienteName;
+  document.getElementById('ticket-detail-title').textContent = venta.producto + ' — ' + clienteName;
   document.getElementById('ticket-detail-body').innerHTML = html;
   document.getElementById('ticket-detail-overlay').classList.add('show');
 }
@@ -3037,12 +3042,13 @@ function addNewClientFromInput() {
   document.getElementById('client-cards').style.display = 'none';
 }
 
-// Close cards when clicking outside
-document.addEventListener('click', (e) => {
+// Close cards when clicking outside (use mousedown so it fires before onclick on cards)
+document.addEventListener('mousedown', (e) => {
   const cards = document.getElementById('client-cards');
   const input = document.getElementById('venta-cliente');
-  if (cards && input && !cards.contains(e.target) && e.target !== input) {
-    cards.style.display = 'none';
+  const nuevoInput = document.getElementById('venta-cliente-nuevo');
+  if (cards && cards.style.display !== 'none' && !cards.contains(e.target) && e.target !== input && e.target !== nuevoInput) {
+    setTimeout(() => { cards.style.display = 'none'; }, 200);
   }
 });
 
