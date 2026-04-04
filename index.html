@@ -794,6 +794,158 @@ body {
 }
 .logout-btn:active { background: var(--surface2); }
 .logout-btn svg { width: 16px; height: 16px; }
+
+/* ── Light Mode ── */
+body.light {
+  --bg: #F3F4F6;
+  --surface: #FFFFFF;
+  --surface2: #F0F1F3;
+  --surface3: #E5E7EB;
+  --border: #D1D5DB;
+  --text: #111827;
+  --text2: #4B5563;
+  --text3: #6B7280;
+  --green: #059669;
+  --green-bg: rgba(5,150,105,0.1);
+  --green-border: rgba(5,150,105,0.25);
+  --red: #DC2626;
+  --red-bg: rgba(220,38,38,0.08);
+  --red-border: rgba(220,38,38,0.2);
+  --blue: #2563EB;
+  --blue-bg: rgba(37,99,235,0.08);
+  --blue-border: rgba(37,99,235,0.2);
+  --orange: #D97706;
+  --orange-bg: rgba(217,119,6,0.08);
+  --orange-border: rgba(217,119,6,0.2);
+  --purple: #7C3AED;
+  --purple-bg: rgba(124,58,237,0.08);
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+body.light .login-screen { background: var(--bg); }
+body.light .bottom-nav { background: rgba(255,255,255,0.95); }
+.theme-toggle {
+  background: none; border: none; cursor: pointer;
+  font-size: 18px; padding: 4px 8px; border-radius: 20px;
+  transition: all 0.2s;
+}
+.theme-toggle:active { transform: scale(0.9); }
+
+/* ── Compact Tx Items (home) ── */
+.tx-item-compact {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--border);
+}
+.tx-item-compact .tx-left { display: flex; align-items: center; gap: 10px; }
+.tx-item-compact .tx-icon { width: 34px; height: 34px; border-radius: 8px; font-size: 15px; display:flex;align-items:center;justify-content:center; }
+.tx-item-compact .tx-info h4 { font-size: 13px; font-weight: 600; }
+.tx-item-compact .tx-info p { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.tx-item-compact .amount { font-size: 14px; font-weight: 700; font-family: 'Outfit', sans-serif; }
+.tx-item-compact .badge { font-size: 9px; padding: 1px 6px; border-radius: 20px; font-weight: 600; display:inline-block; margin-top:2px; }
+.tx-compact-list { display: flex; flex-direction: column; gap: 6px; }
+
+/* ── Adeudos Page ── */
+.adeudo-item {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.adeudo-item:active { background: var(--surface2); }
+.adeudo-left { display: flex; align-items: center; gap: 12px; }
+.adeudo-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--surface3);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px; color: var(--text2);
+  font-family: 'Outfit', sans-serif;
+}
+.adeudo-info h4 { font-size: 14px; font-weight: 600; }
+.adeudo-info p { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.adeudo-right { text-align: right; }
+.adeudo-amount {
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px; font-weight: 700; color: var(--red);
+}
+.days-badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 10px;
+  font-weight: 600; display: inline-block; margin-top: 4px;
+}
+.days-badge-red { background: var(--red-bg); color: var(--red); }
+.days-badge-orange { background: var(--orange-bg); color: var(--orange); }
+.days-badge-green { background: var(--green-bg); color: var(--green); }
+
+/* ── Pollo Chart ── */
+.pollo-chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.pollo-chart-title {
+  font-size: 13px; color: var(--text3); text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 6px;
+}
+.chart-bars {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  height: 120px; gap: 6px; position: relative;
+  padding-bottom: 24px;
+}
+.chart-bar-group {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; height: 100%; justify-content: flex-end;
+  position: relative;
+}
+.chart-bar {
+  width: 100%; max-width: 32px; border-radius: 6px 6px 0 0;
+  background: var(--green); min-height: 2px;
+  transition: height 0.4s ease-out;
+  position: relative;
+}
+.chart-bar.empty { background: var(--surface2); min-height: 4px; }
+.chart-bar-value {
+  font-size: 11px; font-weight: 700; color: var(--text);
+  margin-bottom: 4px; font-family: 'Outfit', sans-serif;
+}
+.chart-bar-label {
+  font-size: 10px; color: var(--text3); margin-top: 6px;
+  font-weight: 600; text-transform: uppercase;
+  position: absolute; bottom: 0;
+}
+.chart-ref-line {
+  position: absolute; left: 0; right: 0;
+  border-top: 2px dashed var(--orange);
+  z-index: 2; pointer-events: none;
+}
+.chart-ref-tag {
+  position: absolute; right: 0; top: -16px;
+  font-size: 9px; color: var(--orange); font-weight: 600;
+  background: var(--orange-bg); padding: 1px 6px; border-radius: 8px;
+}
+.chart-legend {
+  display: flex; gap: 16px; margin-top: 12px; justify-content: center;
+}
+.chart-legend-item {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--text3);
+}
+.chart-legend-dot {
+  width: 10px; height: 10px; border-radius: 3px;
+}
+.chart-legend-line {
+  width: 16px; height: 0; border-top: 2px dashed var(--orange);
+}
 </style>
 </head>
 <body>
@@ -842,8 +994,9 @@ body {
 <div id="page-inicio" class="page active">
   <div class="header">
     <h1>Mi <span>Central</span></h1>
-    <div style="display:flex;align-items:center;gap:8px">
+    <div style="display:flex;align-items:center;gap:6px">
       <div class="header-date" id="today-date"></div>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
       <button class="logout-btn" onclick="logout()" title="Cerrar sesión">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       </button>
@@ -911,7 +1064,7 @@ body {
       <div class="section-title">Movimientos</div>
       <button class="see-all" onclick="switchPage('movimientos')">Ver todos →</button>
     </div>
-    <div class="tx-list" id="tx-recent"></div>
+    <div class="tx-compact-list" id="tx-recent"></div>
   </div>
 
   <div class="section">
@@ -976,10 +1129,26 @@ body {
       <div class="balance" id="detail-balance"></div>
       <button class="btn-submit" style="margin-top:12px;max-width:200px;margin-left:auto;margin-right:auto;display:block;font-size:14px;padding:10px" onclick="quickPago()">💵 Registrar abono</button>
     </div>
+    <!-- Pollo Chart -->
+    <div id="detail-pollo-chart"></div>
+
     <div class="section-header" style="margin-bottom:14px">
       <div class="section-title">Historial</div>
     </div>
     <div class="tx-list" id="detail-history"></div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: ADEUDOS ═══════════ -->
+<div id="page-adeudos" class="page">
+  <div class="header">
+    <h1>Adeudos</h1>
+  </div>
+  <div style="padding:16px 20px 0;">
+    <p style="font-size:12px;color:var(--text3);margin-bottom:16px">Ordenados por deuda más antigua primero</p>
+  </div>
+  <div class="section">
+    <div id="adeudos-list" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
 </div>
 
@@ -1058,6 +1227,10 @@ body {
   <button class="nav-item" id="nav-gastos" onclick="switchPage('gastos')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
     GASTOS
+  </button>
+  <button class="nav-item" id="nav-adeudos" onclick="switchPage('adeudos')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v2m0 4h.01M5.07 19H19a2 2 0 001.75-2.97L13.75 4a2 2 0 00-3.5 0L3.32 16.03A2 2 0 005.07 19z"/></svg>
+    ADEUDOS
   </button>
   <button class="nav-item" id="nav-clientes" onclick="switchPage('clientes')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
@@ -1555,6 +1728,7 @@ function switchPage(page) {
   if (page === 'movimientos') renderAllTx();
   if (page === 'gastos') renderGastosPage();
   if (page === 'clientes') renderAllClients();
+  if (page === 'adeudos') renderAdeudos();
 }
 
 // ═══════════ MODAL ═══════════
@@ -1937,7 +2111,7 @@ function renderDashboard() {
   // Recent tx (last 5)
   const allTx = getAllTx().slice(0, 5);
   document.getElementById('tx-recent').innerHTML = allTx.length
-    ? allTx.map(renderTxItem).join('')
+    ? allTx.map(renderTxItemCompact).join('')
     : '<div class="empty-state"><div class="emoji">📦</div><p>Sin movimientos aún.<br>Toca el botón + para empezar.</p></div>';
 
   // Debtors
@@ -2228,6 +2402,9 @@ function showClientDetail(name) {
     ? history.map(renderTxItem).join('')
     : '<div class="empty-state"><div class="emoji">📝</div><p>Sin historial aún.</p></div>';
 
+  // Render pollo chart
+  renderPolloChart(name);
+
   switchPage('client-detail');
 }
 
@@ -2499,6 +2676,199 @@ function saveGastoEdit() {
     fetch(API_URL + '?action=editRow&sheet=Gastos&data=' + encodeURIComponent(JSON.stringify(g)))
       .then(r => r.json()).then(() => hideSyncIndicator()).catch(() => hideSyncIndicator());
   }
+}
+
+// ═══════════ THEME TOGGLE ═══════════
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  localStorage.setItem('micentral_theme', isLight ? 'light' : 'dark');
+  document.getElementById('theme-toggle').textContent = isLight ? '☀️' : '🌙';
+}
+// Apply saved theme
+(function() {
+  const saved = localStorage.getItem('micentral_theme');
+  if (saved === 'light') {
+    document.body.classList.add('light');
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('theme-toggle');
+      if (btn) btn.textContent = '☀️';
+    });
+  }
+})();
+
+// ═══════════ COMPACT TX ITEM (HOME) ═══════════
+function renderTxItemCompact(tx) {
+  if (tx._type === 'compra') {
+    return `<div class="tx-item-compact">
+      <div class="tx-left">
+        <div class="tx-icon entrada">🛒</div>
+        <div class="tx-info"><h4>${tx.producto}</h4><p>${tx.proveedor || ''} · ${formatDate(tx.dia)}</p></div>
+      </div>
+      <div class="tx-amount"><div class="amount amount-red">-${fmt(tx.total)}</div></div>
+    </div>`;
+  } else if (tx._type === 'venta') {
+    return `<div class="tx-item-compact">
+      <div class="tx-left">
+        <div class="tx-icon venta">💰</div>
+        <div class="tx-info"><h4>${tx.cliente}</h4><p>${tx.producto} · ${formatDate(tx.dia)}</p></div>
+      </div>
+      <div class="tx-amount">
+        <div class="amount amount-green">+${fmt(tx.total)}</div>
+        <span class="badge ${tx.status === 'pagado' ? 'badge-pagado' : 'badge-fiado'}">${tx.status === 'pagado' ? '✓' : 'Fiado'}</span>
+      </div>
+    </div>`;
+  } else if (tx._type === 'gasto') {
+    return `<div class="tx-item-compact">
+      <div class="tx-left">
+        <div class="tx-icon" style="background:var(--red-bg)">🧾</div>
+        <div class="tx-info"><h4>${tx.descripcion}</h4><p>${formatDate(tx.dia)}</p></div>
+      </div>
+      <div class="tx-amount"><div class="amount amount-red">-${fmt(tx.total)}</div></div>
+    </div>`;
+  } else {
+    return `<div class="tx-item-compact">
+      <div class="tx-left">
+        <div class="tx-icon pago">💵</div>
+        <div class="tx-info"><h4>${tx.cliente}</h4><p>Abono · ${formatDate(tx.dia)}</p></div>
+      </div>
+      <div class="tx-amount"><div class="amount amount-orange">+${fmt(tx.monto)}</div></div>
+    </div>`;
+  }
+}
+
+// ═══════════ ADEUDOS PAGE ═══════════
+function renderAdeudos() {
+  const deudores = Object.entries(data.clientes).filter(([,c]) => Number(c.saldo) > 0);
+
+  // For each debtor, find oldest unpaid (fiado) venta date
+  const deudoresConFecha = deudores.map(([name, c]) => {
+    const ventasFiadas = data.ventas
+      .filter(v => v.cliente === name && v.status === 'fiado')
+      .sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+    const oldest = ventasFiadas[0];
+    const oldestDate = oldest ? new Date(oldest.fecha) : new Date();
+    const days = Math.floor((new Date() - oldestDate) / (1000*60*60*24));
+    return { name, saldo: Number(c.saldo), oldestDate, days, oldestDia: oldest ? oldest.dia : '' };
+  });
+
+  // Sort by oldest debt first (most days)
+  deudoresConFecha.sort((a,b) => b.days - a.days);
+
+  const container = document.getElementById('adeudos-list');
+  if (deudoresConFecha.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="emoji">✅</div><p>No hay adeudos pendientes. ¡Excelente!</p></div>';
+    return;
+  }
+
+  container.innerHTML = deudoresConFecha.map(d => {
+    const initials = d.name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+    let badgeClass = 'days-badge-green';
+    if (d.days > 7) badgeClass = 'days-badge-red';
+    else if (d.days > 3) badgeClass = 'days-badge-orange';
+
+    return `<div class="adeudo-item" onclick="showClientDetail('${d.name.replace(/'/g, "\\'")}')">
+      <div class="adeudo-left">
+        <div class="adeudo-avatar">${initials}</div>
+        <div class="adeudo-info">
+          <h4>${d.name}</h4>
+          <p>Desde ${d.oldestDia ? formatDate(d.oldestDia) : 'N/A'}</p>
+        </div>
+      </div>
+      <div class="adeudo-right">
+        <div class="adeudo-amount">${fmt(d.saldo)}</div>
+        <span class="days-badge ${badgeClass}">${d.days} día${d.days !== 1 ? 's' : ''}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════ POLLO CHART IN CLIENT DETAIL ═══════════
+function renderPolloChart(clientName) {
+  const container = document.getElementById('detail-pollo-chart');
+  const dayNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const dayOrder = [1,2,3,4,5,6,0]; // Lun-Dom
+
+  // Get all pollo ventas for this client
+  const polloVentas = data.ventas.filter(v =>
+    v.cliente === clientName && v.producto && v.producto.toLowerCase().includes('pollo')
+  );
+
+  if (polloVentas.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  // Current week: Monday to Sunday
+  const now = new Date();
+  const todayDay = now.getDay(); // 0=Sun
+  const mondayOffset = todayDay === 0 ? -6 : 1 - todayDay;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + mondayOffset);
+  monday.setHours(0,0,0,0);
+
+  const lastMonday = new Date(monday);
+  lastMonday.setDate(monday.getDate() - 7);
+
+  // Count pollos per day this week and last week
+  const thisWeek = [0,0,0,0,0,0,0]; // Mon-Sun
+  const lastWeek = [0,0,0,0,0,0,0];
+
+  polloVentas.forEach(v => {
+    const d = new Date(v.dia + 'T12:00:00');
+    if (isNaN(d.getTime())) return;
+    const dayIdx = d.getDay(); // 0=Sun
+    const mappedIdx = dayIdx === 0 ? 6 : dayIdx - 1; // 0=Mon...6=Sun
+
+    const diffFromMonday = Math.floor((d - monday) / (1000*60*60*24));
+    const diffFromLastMonday = Math.floor((d - lastMonday) / (1000*60*60*24));
+
+    if (diffFromMonday >= 0 && diffFromMonday < 7) {
+      thisWeek[mappedIdx] += Number(v.cantidad) || 0;
+    }
+    if (diffFromLastMonday >= 0 && diffFromLastMonday < 7) {
+      lastWeek[mappedIdx] += Number(v.cantidad) || 0;
+    }
+  });
+
+  const maxVal = Math.max(...thisWeek, ...lastWeek, 1);
+
+  // Find today's index (Mon=0...Sun=6)
+  const todayIdx = todayDay === 0 ? 6 : todayDay - 1;
+
+  // Build chart HTML
+  const barsHtml = dayOrder.map((jsDay, i) => {
+    const qty = thisWeek[i];
+    const lastQty = lastWeek[i];
+    const height = Math.max((qty / maxVal) * 90, qty > 0 ? 8 : 4);
+    const isToday = i === todayIdx;
+    const barColor = isToday ? 'background:var(--green)' : 'background:var(--blue)';
+
+    // Reference line for this specific day
+    let refHtml = '';
+    if (lastQty > 0) {
+      const refBottom = (lastQty / maxVal) * 90;
+      refHtml = `<div style="position:absolute;left:-4px;right:-4px;bottom:${refBottom}px;border-top:2px dashed var(--orange);z-index:2"></div>`;
+    }
+
+    return `<div class="chart-bar-group">
+      <div class="chart-bar-value">${qty > 0 ? qty : ''}</div>
+      <div style="position:relative;width:100%;display:flex;justify-content:center">
+        <div class="chart-bar ${qty === 0 ? 'empty' : ''}" style="height:${height}px;${barColor}"></div>
+        ${refHtml}
+      </div>
+      <div class="chart-bar-label" style="position:relative">${dayNames[jsDay]}${isToday ? ' •' : ''}</div>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="pollo-chart-card">
+      <div class="pollo-chart-title">🐔 Pollos esta semana</div>
+      <div class="chart-bars">${barsHtml}</div>
+      <div class="chart-legend">
+        <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--blue)"></div>Esta semana</div>
+        <div class="chart-legend-item"><div class="chart-legend-line"></div>Semana pasada</div>
+      </div>
+    </div>`;
 }
 
 // ═══════════ INIT ═══════════
