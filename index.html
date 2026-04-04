@@ -1402,6 +1402,15 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
   </div>
 </div>
 
+<!-- ═══════════ MODAL: DETALLE DE TICKET ═══════════ -->
+<div class="modal-overlay" id="ticket-detail-overlay" onclick="if(event.target===this)closeTicketDetail()">
+  <div class="modal" style="max-height:80dvh">
+    <div class="modal-handle"></div>
+    <h2 id="ticket-detail-title">Detalle de cuenta</h2>
+    <div id="ticket-detail-body"></div>
+  </div>
+</div>
+
 <!-- ═══════════ MODAL: ABONO RÁPIDO ═══════════ -->
 <div class="abono-modal-overlay" id="abono-modal-overlay" onclick="if(event.target===this)closeAbonoModal()">
   <div class="abono-modal">
@@ -2021,10 +2030,13 @@ function savePago() {
     cuenta: currentPagoCuenta
   };
   data.pagos.push(row);
+  recalcBalances();
   save();
   closeModal();
   clearForm('pago');
   renderDashboard();
+  renderAllClients();
+  if (currentDetailClient) showClientDetail(currentDetailClient);
   // Sync to Sheets
   if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
     showSyncIndicator('Guardando...');
@@ -2208,11 +2220,12 @@ function renderTxItem(tx) {
       ${actions}
     </div>`;
   } else if (tx._type === 'venta') {
-    return `<div class="tx-item" style="flex-wrap:wrap">
-      <div class="tx-left">
+    const clickHandler = tx.status === 'fiado' ? `onclick="showTicketDetail('${tx.cliente.replace(/'/g,"\\'")}', ${tx.id})"` : '';
+    return `<div class="tx-item" style="flex-wrap:wrap;${tx.status === 'fiado' ? 'cursor:pointer' : ''}">
+      <div class="tx-left" ${clickHandler}>
         <div class="tx-icon venta">💰</div>
         <div class="tx-info">
-          <h4>${tx.producto}</h4>
+          <h4>${tx.producto} ${tx.status === 'fiado' ? '<span style="font-size:10px;color:var(--text3)">ver detalle →</span>' : ''}</h4>
           <p>${tx.cliente} · ${tx.cantidad || ''} × ${tx.cantidad ? fmt(tx.total / tx.cantidad) : ''} · ${formatDate(tx.dia)}</p>
         </div>
       </div>
@@ -2296,10 +2309,12 @@ function confirmDelete() {
     .then(() => hideSyncIndicator())
     .catch(() => hideSyncIndicator());
 
+  recalcBalances();
   save();
   renderDashboard();
   renderAllTx();
   renderAllClients();
+  if (currentDetailClient) showClientDetail(currentDetailClient);
 }
 
 // ═══════════ EDIT TRANSACTION ═══════════
@@ -2371,38 +2386,25 @@ function saveEdit() {
   } else if (type === 'venta') {
     const tx = data.ventas.find(v => v.id === id);
     if (tx) {
-      const oldTotal = tx.total;
-      const oldStatus = tx.status;
       tx.cliente = document.getElementById('edit-cliente').value.trim();
       tx.producto = document.getElementById('edit-producto').value.trim();
       tx.cantidad = parseFloat(document.getElementById('edit-cantidad').value) || 0;
       const editPrecio = parseFloat(document.getElementById('edit-precio').value) || 0;
       tx.total = tx.cantidad * editPrecio;
-      // Adjust fiado if needed
-      if (oldStatus === 'fiado' && data.clientes[tx.cliente]) {
-        data.clientes[tx.cliente].saldo += (tx.total - oldTotal);
-        if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
-          apiCall('updateCliente', { nombre: tx.cliente, tipo: data.clientes[tx.cliente].tipo, saldo: data.clientes[tx.cliente].saldo });
-        }
-      }
     }
   } else {
     const tx = data.pagos.find(p => p.id === id);
     if (tx) {
-      const oldMonto = tx.monto;
       tx.cliente = document.getElementById('edit-cliente').value.trim();
       tx.monto = parseFloat(document.getElementById('edit-monto').value) || 0;
-      if (data.clientes[tx.cliente]) {
-        data.clientes[tx.cliente].saldo += (oldMonto - tx.monto);
-        if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
-          apiCall('updateCliente', { nombre: tx.cliente, tipo: data.clientes[tx.cliente].tipo, saldo: data.clientes[tx.cliente].saldo });
-        }
-      }
     }
   }
+
+  // Recalculate all balances from scratch (fiado - pagos)
+  recalcBalances();
   save();
   closeEditModal();
-  
+
   // Sync edit to Sheet
   const sheetMap = { compra: 'Compras', venta: 'Ventas', pago: 'Pagos' };
   let editedTx;
@@ -2416,10 +2418,12 @@ function saveEdit() {
       .then(() => hideSyncIndicator())
       .catch(() => hideSyncIndicator());
   }
-  
+
   renderDashboard();
   renderAllTx();
   renderAllClients();
+  // Re-render client detail if open
+  if (currentDetailClient) showClientDetail(currentDetailClient);
 }
 
 function renderClientItem(name, c) {
@@ -2650,6 +2654,7 @@ function confirmAbono() {
     cuenta: abonoCuenta
   };
   data.pagos.push(row);
+  recalcBalances();
   save();
 
   // 4. Sync to Sheets
@@ -2785,6 +2790,86 @@ function saveGastoEdit() {
     fetch(API_URL + '?action=editRow&sheet=Gastos&data=' + encodeURIComponent(JSON.stringify(g)))
       .then(r => r.json()).then(() => hideSyncIndicator()).catch(() => hideSyncIndicator());
   }
+}
+
+// ═══════════ TICKET DETAIL (FIADO) ═══════════
+function showTicketDetail(clienteName, ventaId) {
+  // Get all fiado ventas for this client
+  const ventasFiadas = data.ventas
+    .filter(v => v.cliente === clienteName && (v.status === 'fiado' || v.status === 'pagado'))
+    .sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+
+  // Get all pagos for this client
+  const pagosCliente = data.pagos
+    .filter(p => p.cliente === clienteName)
+    .sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+
+  // Calculate totals
+  const totalFiado = data.ventas
+    .filter(v => v.cliente === clienteName && (v.status === 'fiado'))
+    .reduce((s,v) => s + Number(v.total), 0);
+  const totalPagado = pagosCliente.reduce((s,p) => s + Number(p.monto), 0);
+  const totalOriginal = data.ventas
+    .filter(v => v.cliente === clienteName && (v.status === 'fiado' || v.status === 'pagado'))
+    .reduce((s,v) => s + Number(v.total), 0);
+  const saldoActual = Math.max(0, totalFiado);
+
+  let html = '';
+
+  // Summary card
+  html += `<div style="background:var(--surface2);border-radius:var(--radius);padding:16px;margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+      <span style="font-size:12px;color:var(--text3)">TOTAL ORIGINAL</span>
+      <span style="font-family:'Outfit';font-weight:700;font-size:16px">${fmt(totalOriginal)}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+      <span style="font-size:12px;color:var(--green)">ABONOS REALIZADOS</span>
+      <span style="font-family:'Outfit';font-weight:700;font-size:16px;color:var(--green)">-${fmt(totalPagado)}</span>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:8px;display:flex;justify-content:space-between">
+      <span style="font-size:13px;font-weight:700;color:var(--red)">SALDO PENDIENTE</span>
+      <span style="font-family:'Outfit';font-weight:800;font-size:20px;color:var(--red)">${fmt(saldoActual)}</span>
+    </div>
+  </div>`;
+
+  // Ventas fiadas list
+  html += '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">VENTAS FIADAS</div>';
+  const currentFiadas = data.ventas.filter(v => v.cliente === clienteName && v.status === 'fiado');
+  if (currentFiadas.length > 0) {
+    html += currentFiadas.map(v => `
+      <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border)">
+        <div>
+          <div style="font-size:13px;font-weight:600">${v.producto}</div>
+          <div style="font-size:11px;color:var(--text3)">${v.cantidad || ''} pz · ${formatDate(v.dia)}</div>
+        </div>
+        <div style="font-family:'Outfit';font-weight:700;color:var(--red)">${fmt(v.total)}</div>
+      </div>`).join('');
+  } else {
+    html += '<div style="text-align:center;color:var(--text3);font-size:13px;padding:12px">Sin ventas fiadas pendientes</div>';
+  }
+
+  // Abonos list
+  html += '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin:16px 0 8px">ABONOS REALIZADOS</div>';
+  if (pagosCliente.length > 0) {
+    html += pagosCliente.map(p => `
+      <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--green-border)">
+        <div>
+          <div style="font-size:13px;font-weight:600">Abono</div>
+          <div style="font-size:11px;color:var(--text3)">${formatDate(p.dia)} · ${p.cuenta || ''}</div>
+        </div>
+        <div style="font-family:'Outfit';font-weight:700;color:var(--green)">+${fmt(p.monto)}</div>
+      </div>`).join('');
+  } else {
+    html += '<div style="text-align:center;color:var(--text3);font-size:13px;padding:12px">Sin abonos aún</div>';
+  }
+
+  document.getElementById('ticket-detail-title').textContent = 'Cuenta de ' + clienteName;
+  document.getElementById('ticket-detail-body').innerHTML = html;
+  document.getElementById('ticket-detail-overlay').classList.add('show');
+}
+
+function closeTicketDetail() {
+  document.getElementById('ticket-detail-overlay').classList.remove('show');
 }
 
 // ═══════════ THEME TOGGLE ═══════════
