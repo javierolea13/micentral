@@ -995,7 +995,11 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
   <div class="header">
     <h1>Mi <span>Central</span></h1>
     <div style="display:flex;align-items:center;gap:6px">
-      <div class="header-date" id="today-date"></div>
+      <div style="display:flex;align-items:center;gap:2px">
+        <button class="header-date" onclick="shiftDate(-1)" style="border:none;cursor:pointer;padding:6px 8px;font-family:inherit;color:var(--text2);background:var(--surface);border-radius:20px 0 0 20px;font-size:13px">◀</button>
+        <input type="date" id="date-filter" onchange="onDateFilterChange()" style="background:var(--surface);color:var(--text);border:none;font-family:'DM Sans',sans-serif;font-size:13px;padding:6px 8px;text-align:center;width:auto;-webkit-appearance:none;cursor:pointer">
+        <button class="header-date" onclick="shiftDate(1)" style="border:none;cursor:pointer;padding:6px 8px;font-family:inherit;color:var(--text2);background:var(--surface);border-radius:0 20px 20px 0;font-size:13px">▶</button>
+      </div>
       <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
       <button class="logout-btn" onclick="logout()" title="Cerrar sesión">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -1004,7 +1008,7 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
   </div>
 
   <div style="padding:16px 20px 0;">
-    <p style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">RESUMEN DEL DÍA</p>
+    <p style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px" id="dashboard-subtitle">RESUMEN DEL DÍA</p>
     <h2 style="font-family:'Outfit';font-size:20px;font-weight:800;margin-bottom:16px">Dashboard</h2>
   </div>
   <div class="summary">
@@ -1700,8 +1704,22 @@ function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
 }
 
-document.getElementById('today-date').textContent =
-  new Date().toLocaleDateString('es-MX', { weekday:'short', day:'numeric', month:'short' });
+// Date filter
+let selectedDate = todayStr();
+document.getElementById('date-filter').value = selectedDate;
+
+function onDateFilterChange() {
+  selectedDate = document.getElementById('date-filter').value || todayStr();
+  renderDashboard();
+}
+
+function shiftDate(offset) {
+  const d = new Date(selectedDate + 'T12:00:00');
+  d.setDate(d.getDate() + offset);
+  selectedDate = d.toISOString().split('T')[0];
+  document.getElementById('date-filter').value = selectedDate;
+  renderDashboard();
+}
 
 // ═══════════ CURRENT STATE ═══════════
 let currentModalType = 'compra';
@@ -2075,17 +2093,22 @@ function recalcBalances() {
 
 function renderDashboard() {
   recalcBalances();
-  const today = todayStr();
+  const day = selectedDate || todayStr();
 
-  // Summary — force Number() on all values from Sheet
-  const ventasHoy = data.ventas.filter(v => v.dia === today);
-  const comprasHoy = data.compras.filter(c => c.dia === today);
-  const pagosHoy = data.pagos.filter(p => p.dia === today);
+  // Summary — filter by selected date
+  const ventasHoy = data.ventas.filter(v => v.dia === day);
+  const comprasHoy = data.compras.filter(c => c.dia === day);
+  const pagosHoy = data.pagos.filter(p => p.dia === day);
   const totalVentas = ventasHoy.reduce((s,v) => s + Number(v.total), 0);
   const totalCompras = comprasHoy.reduce((s,c) => s + Number(c.total), 0);
   const totalCobrado = pagosHoy.reduce((s,p) => s + Number(p.monto), 0);
   const deudores = Object.entries(data.clientes).filter(([,c]) => Number(c.saldo) > 0);
   const totalFiado = deudores.reduce((s,[,c]) => s + Number(c.saldo), 0);
+
+  // Update subtitle
+  const isToday = day === todayStr();
+  const subtitleEl = document.getElementById('dashboard-subtitle');
+  if (subtitleEl) subtitleEl.textContent = isToday ? 'RESUMEN DEL DÍA' : 'RESUMEN DE ' + formatDate(day).toUpperCase();
 
   document.getElementById('sum-ventas').textContent = fmt(totalVentas);
   document.getElementById('sum-ventas-count').textContent = ventasHoy.length + ' ops';
@@ -2103,16 +2126,16 @@ function renderDashboard() {
   document.getElementById('sum-pollos-val').textContent = fmt(pollosVal);
 
   // Gastos
-  const gastosHoy = (data.gastos || []).filter(g => g.dia === today);
+  const gastosHoy = (data.gastos || []).filter(g => g.dia === day);
   const totalGastos = gastosHoy.reduce((s, g) => s + (Number(g.total) || 0), 0);
   document.getElementById('sum-gastos').textContent = fmt(totalGastos);
   document.getElementById('sum-gastos-count').textContent = gastosHoy.length + ' gastos';
 
-  // Recent tx (last 5)
-  const allTx = getAllTx().slice(0, 5);
-  document.getElementById('tx-recent').innerHTML = allTx.length
-    ? allTx.map(renderTxItemCompact).join('')
-    : '<div class="empty-state"><div class="emoji">📦</div><p>Sin movimientos aún.<br>Toca el botón + para empezar.</p></div>';
+  // Recent tx for selected day (last 5)
+  const dayTx = getAllTx().filter(t => t.dia === day).slice(0, 5);
+  document.getElementById('tx-recent').innerHTML = dayTx.length
+    ? dayTx.map(renderTxItemCompact).join('')
+    : '<div class="empty-state"><div class="emoji">📦</div><p>Sin movimientos este día.</p></div>';
 
   // Debtors
   const sortedDebtors = deudores.sort((a,b) => b[1].saldo - a[1].saldo).slice(0, 5);
