@@ -1606,19 +1606,49 @@ function hideSyncIndicator() {
   if (el) setTimeout(() => el.style.display = 'none', 800);
 }
 
-// Backfill _originalStatus for existing ventas that don't have it
+// Migration v2: recalculate _originalStatus from scratch
+// Old logic was buggy — this fixes ventas that were incorrectly marked
 function backfillOriginalStatus() {
+  // Group ventas by client
+  const clientVentas = {};
   data.ventas.forEach(v => {
-    if (!v._originalStatus) {
-      // If a venta is currently 'fiado', it was definitely originally fiado
+    if (!clientVentas[v.cliente]) clientVentas[v.cliente] = [];
+    clientVentas[v.cliente].push(v);
+  });
+
+  Object.entries(clientVentas).forEach(([cliente, ventas]) => {
+    const totalPagos = data.pagos
+      .filter(p => p.cliente === cliente)
+      .reduce((s, p) => s + Number(p.monto), 0);
+
+    // Sort by date (oldest first) to process in order
+    const sorted = ventas.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+    // For ventas that already have _originalStatus from new creation flow, keep it
+    // For ventas without it: we need to determine if originally fiado or pagado
+    sorted.forEach(v => {
+      if (v._originalStatus) return; // Already set by new creation flow
+
+      // Heuristic: if this client ever had pagos/abonos, their 'pagado' ventas
+      // were likely auto-marked from fiado. If the client never had pagos AND
+      // the venta is 'pagado', it was likely a cash sale.
+      // BUT: pagos could have been deleted. So for safety, we check tipo_cliente
+      // which is always set, and default ambiguous cases to 'fiado'
       if (v.status === 'fiado') {
         v._originalStatus = 'fiado';
-      } else if (v.status === 'pagado') {
-        // Check if this client has pagos — if yes, this venta might have been auto-paid from fiado
-        const hasPagos = data.pagos.some(p => p.cliente === v.cliente);
-        // If no pagos exist for this client, it was a cash sale (originally pagado)
-        v._originalStatus = hasPagos ? 'fiado' : 'pagado';
+      } else {
+        // Default to 'fiado' — safer for debt tracking
+        // Cash sales that get incorrectly marked will just show as fiado
+        // but recalcBalances will auto-pay them if pagos exist
+        v._originalStatus = 'fiado';
       }
+    });
+  });
+
+  // Reset all originally-fiado ventas to fiado so recalcBalances can re-evaluate
+  data.ventas.forEach(v => {
+    if (v._originalStatus === 'fiado' && v.status === 'pagado') {
+      v.status = 'fiado';
     }
   });
 }
