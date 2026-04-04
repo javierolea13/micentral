@@ -1131,7 +1131,7 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
     <div class="client-balance-card">
       <div class="label">SALDO PENDIENTE</div>
       <div class="balance" id="detail-balance"></div>
-      <button class="btn-submit" style="margin-top:12px;max-width:200px;margin-left:auto;margin-right:auto;display:block;font-size:14px;padding:10px" onclick="quickPago()">💵 Registrar abono</button>
+      <button class="btn-submit" id="detail-abono-btn" style="margin-top:12px;max-width:200px;margin-left:auto;margin-right:auto;display:block;font-size:14px;padding:10px" onclick="quickPago()">💵 Registrar abono</button>
     </div>
 
     <!-- Contact Info -->
@@ -2220,12 +2220,12 @@ function renderTxItem(tx) {
       ${actions}
     </div>`;
   } else if (tx._type === 'venta') {
-    const clickHandler = tx.status === 'fiado' ? `onclick="showTicketDetail('${tx.cliente.replace(/'/g,"\\'")}', ${tx.id})"` : '';
-    return `<div class="tx-item" style="flex-wrap:wrap;${tx.status === 'fiado' ? 'cursor:pointer' : ''}">
+    const clickHandler = `onclick="showTicketDetail('${tx.cliente.replace(/'/g,"\\'")}', ${tx.id})"`;
+    return `<div class="tx-item" style="flex-wrap:wrap;cursor:pointer">
       <div class="tx-left" ${clickHandler}>
         <div class="tx-icon venta">💰</div>
         <div class="tx-info">
-          <h4>${tx.producto} ${tx.status === 'fiado' ? '<span style="font-size:10px;color:var(--text3)">ver detalle →</span>' : ''}</h4>
+          <h4>${tx.producto} <span style="font-size:10px;color:var(--text3)">ver cuenta →</span></h4>
           <p>${tx.cliente} · ${tx.cantidad || ''} × ${tx.cantidad ? fmt(tx.total / tx.cantidad) : ''} · ${formatDate(tx.dia)}</p>
         </div>
       </div>
@@ -2500,6 +2500,20 @@ function showClientDetail(name) {
   document.getElementById('detail-type').textContent = client.tipo === 'mesa' ? '🪑 Mesa' : '👤 Clienta';
   document.getElementById('detail-balance').textContent = fmt(client.saldo);
 
+  // Disable abono button if saldo is 0
+  const abonoBtn = document.getElementById('detail-abono-btn');
+  if (Number(client.saldo) <= 0) {
+    abonoBtn.disabled = true;
+    abonoBtn.style.opacity = '0.4';
+    abonoBtn.style.cursor = 'not-allowed';
+    abonoBtn.textContent = '✅ Sin adeudo';
+  } else {
+    abonoBtn.disabled = false;
+    abonoBtn.style.opacity = '1';
+    abonoBtn.style.cursor = 'pointer';
+    abonoBtn.textContent = '💵 Registrar abono';
+  }
+
   // Contact fields
   document.getElementById('detail-telefono').value = client.telefono || '';
   document.getElementById('detail-emergencia').value = client.emergencia || '';
@@ -2537,6 +2551,7 @@ let abonoCuenta = 'efectivo';
 function quickPago() {
   const name = document.getElementById('detail-name').textContent;
   if (!data.clientes[name]) return;
+  if (Number(data.clientes[name].saldo) <= 0) return;
   abonoClientName = name;
   abonoSelectedIndexes = new Set();
   abonoCuenta = 'efectivo';
