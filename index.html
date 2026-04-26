@@ -5226,10 +5226,16 @@ function saveTicketAbono() {
   renderAllClients();
 }
 
-function saveTicketDescuento() {
-  if (!currentTicketAbonoVentaId) return;
+async function saveTicketDescuento() {
+  if (!currentTicketAbonoVentaId) {
+    alert('❌ Bug: currentTicketAbonoVentaId está vacío');
+    return;
+  }
   const venta = data.ventas.find(v => String(v.id) === String(currentTicketAbonoVentaId));
-  if (!venta) return;
+  if (!venta) {
+    alert('❌ Bug: no encontré la venta con id ' + currentTicketAbonoVentaId);
+    return;
+  }
 
   const monto = parseFloat(document.getElementById('ticket-descuento-monto').value) || 0;
   const motivo = document.getElementById('ticket-descuento-motivo').value;
@@ -5255,12 +5261,20 @@ function saveTicketDescuento() {
 
   if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
     showSyncIndicator('Guardando descuento...');
-    apiCall('addDescuento', row).then(hideSyncIndicator);
-    apiCall('updateCliente', {
-      nombre: venta.cliente,
-      tipo: data.clientes[venta.cliente].tipo,
-      saldo: data.clientes[venta.cliente].saldo
-    });
+    // ESPERAR la respuesta del API antes de cerrar el modal
+    const result = await apiCall('addDescuento', row);
+    hideSyncIndicator();
+    if (!result || result.error) {
+      alert('❌ Error al guardar descuento en Sheet:\n' + (result ? result.error : 'sin respuesta del API'));
+    }
+    // updateCliente en paralelo (no crítico)
+    if (data.clientes[venta.cliente]) {
+      apiCall('updateCliente', {
+        nombre: venta.cliente,
+        tipo: data.clientes[venta.cliente].tipo,
+        saldo: data.clientes[venta.cliente].saldo
+      });
+    }
   }
 
   // Re-abrir el modal con datos actualizados
