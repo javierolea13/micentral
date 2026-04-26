@@ -197,6 +197,14 @@ body {
 .tx-icon.pago { background: var(--orange-bg); }
 .tx-info h4 { font-size: 14px; font-weight: 600; }
 .tx-info p { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.tx-type-label {
+  font-size: 9px; font-weight: 800; letter-spacing: 1px;
+  text-transform: uppercase; display: block; margin-bottom: 2px;
+}
+.tx-type-compra { color: var(--red); }
+.tx-type-venta { color: var(--green); }
+.tx-type-pago { color: var(--orange); }
+.tx-type-gasto { color: var(--red); }
 .tx-amount { text-align: right; }
 .tx-amount .amount { font-size: 15px; font-weight: 700; font-family: 'Outfit', sans-serif; }
 .tx-amount .badge {
@@ -2352,6 +2360,7 @@ function renderTxItem(tx) {
       <div class="tx-left">
         <div class="tx-icon entrada">🛒</div>
         <div class="tx-info">
+          <span class="tx-type-label tx-type-compra">Compra</span>
           <h4>${tx.producto}</h4>
           <p>${tx.proveedor || 'Sin proveedor'} · ${formatDate(tx.dia)}</p>
         </div>
@@ -2367,6 +2376,7 @@ function renderTxItem(tx) {
       <div class="tx-left" ${clickHandler}>
         <div class="tx-icon venta">💰</div>
         <div class="tx-info">
+          <span class="tx-type-label tx-type-venta">Venta</span>
           <h4>${tx.producto} <span style="font-size:10px;color:var(--text3)">ver cuenta →</span></h4>
           <p>${tx.cliente} · ${tx.cantidad || ''} × ${tx.cantidad ? fmt(tx.total / tx.cantidad) : ''} · ${formatDate(tx.dia)}</p>
         </div>
@@ -2382,6 +2392,7 @@ function renderTxItem(tx) {
       <div class="tx-left">
         <div class="tx-icon pago">💵</div>
         <div class="tx-info">
+          <span class="tx-type-label tx-type-pago">Pago</span>
           <h4>Abono de ${tx.cliente}</h4>
           <p>${formatDate(tx.dia)}</p>
         </div>
@@ -2884,6 +2895,7 @@ function renderGastosList() {
     <div class="tx-left">
       <div class="tx-icon" style="background:var(--red-bg)">🧾</div>
       <div class="tx-info">
+        <span class="tx-type-label tx-type-gasto">Gasto${g.categoria ? ' · ' + g.categoria : ''}</span>
         <h4>${g.descripcion || 'Gasto'}</h4>
         <p>${g.cuenta || 'efectivo'} · ${formatDate(g.dia)}</p>
       </div>
