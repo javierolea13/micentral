@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Mi Central - Control de Negocio</title>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#34D399">
+<meta name="theme-color" content="#3B82F6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mi Central">
@@ -21,9 +21,10 @@
   --text: #F0F0F2;
   --text2: #9CA3B4;
   --text3: #636B7E;
-  --green: #34D399;
-  --green-bg: rgba(52,211,153,0.1);
-  --green-border: rgba(52,211,153,0.25);
+  /* Color primario: cambiado de verde a azul royal (variable mantiene el nombre por compat) */
+  --green: #3B82F6;
+  --green-bg: rgba(59,130,246,0.1);
+  --green-border: rgba(59,130,246,0.25);
   --red: #F87171;
   --red-bg: rgba(248,113,113,0.1);
   --red-border: rgba(248,113,113,0.25);
@@ -368,6 +369,149 @@ body {
   letter-spacing: -0.4px;
 }
 
+/* ─── Adeudos: tickets expandibles ─── */
+.adeudo-group {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.adeudo-group[open] .adeudo-chevron { transform: rotate(180deg); }
+.adeudo-group-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.adeudo-group-head::-webkit-details-marker { display: none; }
+.adeudo-group .adeudo-left { display: flex; align-items: center; gap: 12px; }
+.adeudo-group .adeudo-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--green), var(--chart-2));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: white; font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+}
+.adeudo-group .adeudo-info h4 {
+  font-size: 15px; font-weight: 700; color: var(--text);
+}
+.adeudo-group .adeudo-info p {
+  font-size: 11px; color: var(--text3); margin-top: 2px;
+}
+.adeudo-group .adeudo-right {
+  display: flex; align-items: center; gap: 10px;
+}
+.adeudo-group .adeudo-amount {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800; font-size: 18px; color: var(--orange);
+  letter-spacing: -0.3px;
+}
+.adeudo-chevron {
+  color: var(--text3); font-size: 14px; transition: transform .2s;
+}
+.adeudo-tickets {
+  padding: 0 16px 14px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.ticket-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.ticket-card:hover { border-color: var(--green); }
+.ticket-card:active { transform: scale(0.99); }
+.ticket-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 10px; gap: 10px;
+}
+.ticket-info { flex: 1; min-width: 0; }
+.ticket-title {
+  font-size: 13px; font-weight: 700; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ticket-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.ticket-amount { text-align: right; }
+.ticket-pending {
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px; font-weight: 800;
+  color: var(--orange); letter-spacing: -0.3px;
+}
+.ticket-pending-label {
+  font-size: 9px; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-top: 1px;
+}
+.ticket-progress { margin-top: 6px; }
+.ticket-progress-label {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--text2);
+  margin-top: 6px;
+}
+.ticket-progress-label strong { color: var(--text); font-weight: 700; }
+.ticket-pct { font-weight: 700; color: var(--green); }
+
+/* Modal de ticket detail con abonos */
+.ticket-detail-info {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 14px;
+}
+.ticket-detail-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; padding: 4px 0;
+}
+.ticket-detail-row .label {
+  color: var(--text3); text-transform: uppercase;
+  font-size: 10px; letter-spacing: 1px; font-weight: 600;
+}
+.ticket-detail-row .value {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700; color: var(--text);
+}
+.ticket-detail-row .value.green { color: var(--green); }
+.ticket-detail-row .value.orange { color: var(--orange); }
+.ticket-detail-row .value.big { font-size: 16px; }
+
+.abono-history-section {
+  margin: 16px 0 12px;
+}
+.abono-history-section .section-title {
+  font-size: 12px; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+  margin-bottom: 8px;
+}
+.abono-history-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px; background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px; margin-bottom: 6px;
+}
+.abono-history-left { display: flex; align-items: center; gap: 10px; }
+.abono-history-icon {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--orange-bg); color: var(--orange);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+.abono-history-info { font-size: 12px; }
+.abono-history-info .top { font-weight: 700; color: var(--text); }
+.abono-history-info .bottom { font-size: 10px; color: var(--text3); margin-top: 2px; }
+.abono-history-amount {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800; color: var(--green);
+  font-size: 14px;
+}
+.abono-history-empty {
+  font-size: 12px; color: var(--text3);
+  padding: 12px; text-align: center;
+  background: var(--surface2); border-radius: 10px;
+}
+
 /* ─── Insights page ─── */
 .insights-section { padding: 0 20px; margin-bottom: 16px; }
 .insight-card-min {
@@ -615,7 +759,7 @@ body {
 }
 .sidebar-user-avatar {
   width: 36px; height: 36px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--green), #059669);
+  background: linear-gradient(135deg, var(--green), #1E40AF);
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; color: #0F1115;
   font-family: 'Outfit', sans-serif;
@@ -1207,9 +1351,9 @@ body.light {
   --text: #111827;
   --text2: #4B5563;
   --text3: #6B7280;
-  --green: #059669;
-  --green-bg: rgba(5,150,105,0.1);
-  --green-border: rgba(5,150,105,0.25);
+  --green: #2563EB;
+  --green-bg: rgba(37,99,235,0.1);
+  --green-border: rgba(37,99,235,0.25);
   --red: #DC2626;
   --red-bg: rgba(220,38,38,0.08);
   --red-border: rgba(220,38,38,0.2);
@@ -1824,6 +1968,41 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
         <div class="ic-title">🏆 Top clientes del periodo</div>
       </div>
       <div id="ins-top-clientes"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: TICKET DETAIL (abonos por ticket) ═══════════ -->
+<div class="modal-overlay" id="ticket-abono-overlay" onclick="if(event.target===this)closeTicketAbonoModal()">
+  <div class="modal" style="max-height:85dvh">
+    <div class="modal-handle"></div>
+    <h2 id="ticket-abono-title">Detalle de ticket</h2>
+    <p id="ticket-abono-cliente" style="font-size:13px;color:var(--text3);margin-bottom:14px"></p>
+
+    <!-- Info del ticket -->
+    <div class="ticket-detail-info" id="ticket-abono-info"></div>
+
+    <!-- Historial de abonos -->
+    <div class="abono-history-section">
+      <div class="section-title">Historial de abonos</div>
+      <div id="ticket-abono-history"></div>
+    </div>
+
+    <!-- Form para nuevo abono -->
+    <div style="border-top:1px dashed var(--border);padding-top:14px;margin-top:14px">
+      <div class="form-group">
+        <label>MONTO DEL ABONO</label>
+        <input type="number" id="ticket-abono-monto" placeholder="$0" inputmode="decimal">
+      </div>
+      <div class="form-group">
+        <label>PAGADO CON</label>
+      </div>
+      <div class="account-btns" id="ticket-abono-cuenta-btns"></div>
+      <div class="form-group">
+        <label>FECHA</label>
+        <input type="date" id="ticket-abono-fecha">
+      </div>
+      <button class="btn-submit" onclick="saveTicketAbono()">✅ Registrar abono</button>
     </div>
   </div>
 </div>
@@ -2974,43 +3153,64 @@ function recalcBalances() {
     if (!name) return;
     if (!data.clientes[name]) data.clientes[name] = { tipo: 'clienta', saldo: 0 };
 
-    // Step 1: Reset ventas originally created as fiado back to fiado
-    // This allows correct re-evaluation when pagos are added or removed
+    // Reset ventas originalmente fiadas a fiado para re-evaluar limpio
     data.ventas.forEach(v => {
       if (v.cliente === name && v.status === 'pagado' && v._originalStatus === 'fiado') {
         v.status = 'fiado';
       }
     });
 
-    // Step 2: Get total of all fiado ventas and total pagos
-    const totalFiadoVentas = data.ventas
-      .filter(v => v.cliente === name && v.status === 'fiado')
-      .reduce((s, v) => s + Number(v.total), 0);
-
-    const totalPagos = data.pagos
-      .filter(p => p.cliente === name)
-      .reduce((s, p) => s + Number(p.monto), 0);
-
-    // Step 3: Auto-pay oldest fiado ventas with available credit
-    let credit = totalPagos;
     const fiadoVentas = data.ventas
-      .filter(v => v.cliente === name && v.status === 'fiado')
+      .filter(v => v.cliente === name && v._originalStatus === 'fiado')
       .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
+    // 1. Pagos DIRECTOS (con venta_id) van a su ticket específico
+    fiadoVentas.forEach(v => {
+      const directPaid = data.pagos
+        .filter(p => p.cliente === name && String(p.venta_id || '') === String(v.id))
+        .reduce((s, p) => s + Number(p.monto || 0), 0);
+      v._directPaid = directPaid;
+      if (directPaid >= Number(v.total)) {
+        if (v.status !== 'pagado') {
+          v.status = 'pagado';
+          needsSync = true;
+          fetch(API_URL + '?action=editRow&sheet=Ventas&data=' + encodeURIComponent(JSON.stringify(v))).catch(() => {});
+        }
+      }
+    });
+
+    // 2. Pagos FLOTANTES (sin venta_id) — FIFO sobre tickets que aún tengan saldo
+    let floatingCredit = data.pagos
+      .filter(p => p.cliente === name && !p.venta_id)
+      .reduce((s, p) => s + Number(p.monto || 0), 0);
+
     for (const venta of fiadoVentas) {
-      if (credit >= Number(venta.total)) {
+      if (venta.status === 'pagado') continue;
+      const remaining = Number(venta.total) - (venta._directPaid || 0);
+      if (remaining <= 0) {
         venta.status = 'pagado';
-        credit -= Number(venta.total);
+        continue;
+      }
+      if (floatingCredit >= remaining) {
+        venta.status = 'pagado';
+        venta._floatingPaid = remaining;
+        floatingCredit -= remaining;
         needsSync = true;
         fetch(API_URL + '?action=editRow&sheet=Ventas&data=' + encodeURIComponent(JSON.stringify(venta))).catch(() => {});
+      } else if (floatingCredit > 0) {
+        venta._floatingPaid = floatingCredit;
+        floatingCredit = 0;
+      } else {
+        venta._floatingPaid = 0;
       }
     }
 
-    // Step 4: Calculate final saldo = all originally fiado - all pagos
-    const allOrigFiado = data.ventas
-      .filter(v => v.cliente === name && v._originalStatus === 'fiado')
-      .reduce((s, v) => s + Number(v.total), 0);
-    const newSaldo = Math.max(0, allOrigFiado - totalPagos);
+    // 3. Saldo del cliente = deuda total - todos los pagos
+    const totalDeuda = fiadoVentas.reduce((s, v) => s + Number(v.total), 0);
+    const totalPagos = data.pagos
+      .filter(p => p.cliente === name)
+      .reduce((s, p) => s + Number(p.monto || 0), 0);
+    const newSaldo = Math.max(0, totalDeuda - totalPagos);
 
     if (data.clientes[name].saldo !== newSaldo) {
       data.clientes[name].saldo = newSaldo;
@@ -3020,6 +3220,18 @@ function recalcBalances() {
   });
 
   if (needsSync) save();
+}
+
+// ═══════════ TICKET HELPERS ═══════════
+// Cuánto se ha abonado a un ticket (directo + flotante asignado)
+function getTicketPaid(venta) {
+  return Number(venta._directPaid || 0) + Number(venta._floatingPaid || 0);
+}
+// Pagos directos asignados a este ticket (para mostrar historial)
+function getTicketAbonos(venta) {
+  return data.pagos
+    .filter(p => String(p.venta_id || '') === String(venta.id))
+    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 }
 
 // ═══════════ INSIGHTS HELPERS ═══════════
@@ -4116,48 +4328,83 @@ function renderTxItemCompact(tx) {
 
 // ═══════════ ADEUDOS PAGE ═══════════
 function renderAdeudos() {
+  recalcBalances();
   const deudores = Object.entries(data.clientes).filter(([,c]) => Number(c.saldo) > 0);
 
-  // For each debtor, find oldest unpaid (fiado) venta date
-  const deudoresConFecha = deudores.map(([name, c]) => {
-    const ventasFiadas = data.ventas
-      .filter(v => v.cliente === name && v.status === 'fiado')
+  // Agrupar por cliente con sus tickets pendientes
+  const grouped = deudores.map(([name, c]) => {
+    const tickets = data.ventas
+      .filter(v => v.cliente === name && v._originalStatus === 'fiado' && v.status !== 'pagado')
       .sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-    const oldest = ventasFiadas[0];
-    const oldestDate = oldest ? new Date(oldest.fecha) : new Date();
-    const days = Math.floor((new Date() - oldestDate) / (1000*60*60*24));
-    return { name, saldo: Number(c.saldo), oldestDate, days, oldestDia: oldest ? oldest.dia : '' };
-  });
+    return { name, saldo: Number(c.saldo), tipo: c.tipo, tickets };
+  }).filter(g => g.tickets.length > 0);
 
-  // Sort by oldest debt first (most days)
-  deudoresConFecha.sort((a,b) => b.days - a.days);
+  // Ordenar por mayor saldo primero
+  grouped.sort((a,b) => b.saldo - a.saldo);
 
   const container = document.getElementById('adeudos-list');
-  if (deudoresConFecha.length === 0) {
+  if (grouped.length === 0) {
     container.innerHTML = '<div class="empty-state"><div class="emoji">✅</div><p>No hay adeudos pendientes. ¡Excelente!</p></div>';
     return;
   }
 
-  container.innerHTML = deudoresConFecha.map(d => {
-    const initials = d.name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
-    let badgeClass = 'days-badge-green';
-    if (d.days > 7) badgeClass = 'days-badge-red';
-    else if (d.days > 3) badgeClass = 'days-badge-orange';
+  container.innerHTML = grouped.map(g => renderAdeudoGroup(g)).join('');
+}
 
-    return `<div class="adeudo-item" onclick="showClientDetail('${d.name.replace(/'/g, "\\'")}')">
-      <div class="adeudo-left">
-        <div class="adeudo-avatar">${initials}</div>
-        <div class="adeudo-info">
-          <h4>${d.name}</h4>
-          <p>Desde ${d.oldestDia ? formatDate(d.oldestDia) : 'N/A'}</p>
+function renderAdeudoGroup(g) {
+  const initials = g.name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  return `
+    <details class="adeudo-group" open>
+      <summary class="adeudo-group-head">
+        <div class="adeudo-left">
+          <div class="adeudo-avatar">${initials}</div>
+          <div class="adeudo-info">
+            <h4>${g.name}</h4>
+            <p>${g.tickets.length} ticket${g.tickets.length === 1 ? '' : 's'} pendiente${g.tickets.length === 1 ? '' : 's'}</p>
+          </div>
+        </div>
+        <div class="adeudo-right">
+          <div class="adeudo-amount">${fmt(g.saldo)}</div>
+          <span class="adeudo-chevron">▾</span>
+        </div>
+      </summary>
+      <div class="adeudo-tickets">
+        ${g.tickets.map(t => renderAdeudoTicket(t)).join('')}
+      </div>
+    </details>
+  `;
+}
+
+function renderAdeudoTicket(v) {
+  const total = Number(v.total);
+  const paid = getTicketPaid(v);
+  const pending = total - paid;
+  const pct = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
+  const days = Math.floor((new Date() - new Date(v.fecha)) / (1000*60*60*24));
+  let progClass = '';
+  if (pct < 30) progClass = ' bad';
+  else if (pct < 70) progClass = ' warn';
+  return `
+    <div class="ticket-card" onclick="openTicketAbonoModal('${v.id}')">
+      <div class="ticket-row">
+        <div class="ticket-info">
+          <div class="ticket-title">🐔 ${v.producto || 'Venta'}${v.cantidad ? ' · ' + v.cantidad + ' pz' : ''}</div>
+          <div class="ticket-meta">${formatDate(v.dia)} · hace ${days}d</div>
+        </div>
+        <div class="ticket-amount">
+          <div class="ticket-pending">${fmt(pending)}</div>
+          <div class="ticket-pending-label">pendiente</div>
         </div>
       </div>
-      <div class="adeudo-right">
-        <div class="adeudo-amount">${fmt(d.saldo)}</div>
-        <span class="days-badge ${badgeClass}">${d.days} día${d.days !== 1 ? 's' : ''}</span>
+      <div class="ticket-progress">
+        <div class="progress-bar"><div class="progress-fill${progClass}" style="width:${pct}%"></div></div>
+        <div class="ticket-progress-label">
+          <span>Abonado <strong>${fmt(paid)}</strong> de ${fmt(total)}</span>
+          <span class="ticket-pct">${pct}%</span>
+        </div>
       </div>
-    </div>`;
-  }).join('');
+    </div>
+  `;
 }
 
 // ═══════════ POLLO CHART IN CLIENT DETAIL ═══════════
@@ -4453,6 +4700,159 @@ function renderInsightsTopClientes(ventasR, pagosR) {
       </div>
     </div>`;
   }).join('');
+}
+
+// ═══════════ TICKET ABONO MODAL ═══════════
+let currentTicketAbonoVentaId = null;
+let currentTicketAbonoCuenta = 'efectivo';
+
+function openTicketAbonoModal(ventaId) {
+  const venta = data.ventas.find(v => String(v.id) === String(ventaId));
+  if (!venta) return;
+  currentTicketAbonoVentaId = venta.id;
+  currentTicketAbonoCuenta = cuentas[0] || 'efectivo';
+
+  const total = Number(venta.total);
+  const paid = getTicketPaid(venta);
+  const pending = total - paid;
+  const pct = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
+
+  document.getElementById('ticket-abono-title').textContent =
+    '🐔 ' + (venta.producto || 'Ticket') + (venta.cantidad ? ' · ' + venta.cantidad + ' pz' : '');
+  document.getElementById('ticket-abono-cliente').textContent =
+    `${venta.cliente} · ${formatDate(venta.dia)}`;
+
+  // Info del ticket
+  document.getElementById('ticket-abono-info').innerHTML = `
+    <div class="ticket-detail-row">
+      <span class="label">Total venta</span>
+      <span class="value big">${fmt(total)}</span>
+    </div>
+    <div class="ticket-detail-row">
+      <span class="label">Abonado</span>
+      <span class="value green">${fmt(paid)}</span>
+    </div>
+    <div class="ticket-detail-row">
+      <span class="label">Pendiente</span>
+      <span class="value orange big">${fmt(pending)}</span>
+    </div>
+    <div class="progress-bar" style="margin-top:10px"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div style="text-align:right;font-size:11px;color:var(--text3);margin-top:6px">${pct}% pagado</div>
+  `;
+
+  // Historial de abonos asignados a este ticket
+  const abonos = getTicketAbonos(venta);
+  const histEl = document.getElementById('ticket-abono-history');
+  if (abonos.length === 0) {
+    histEl.innerHTML = '<div class="abono-history-empty">Sin abonos parciales en este ticket. Los pagos del cliente sin ticket asignado se aplican automáticamente FIFO.</div>';
+  } else {
+    histEl.innerHTML = abonos.map(p => `
+      <div class="abono-history-row">
+        <div class="abono-history-left">
+          <div class="abono-history-icon">💵</div>
+          <div class="abono-history-info">
+            <div class="top">${fmt(Number(p.monto))}</div>
+            <div class="bottom">${(p.cuenta||'efectivo').toUpperCase()} · ${formatDate(p.dia)}</div>
+          </div>
+        </div>
+        <button class="btn-delete" style="font-size:10px;padding:4px 8px" onclick="event.stopPropagation();deleteTicketAbono('${p.id}')">Eliminar</button>
+      </div>
+    `).join('');
+  }
+
+  // Form values
+  document.getElementById('ticket-abono-monto').value = pending > 0 ? pending : '';
+  document.getElementById('ticket-abono-fecha').value = todayStr();
+  renderCuentaBtns('ticket-abono-cuenta-btns', 'setTicketAbonoCuenta', currentTicketAbonoCuenta);
+
+  document.getElementById('ticket-abono-overlay').classList.add('show');
+}
+
+function closeTicketAbonoModal() {
+  document.getElementById('ticket-abono-overlay').classList.remove('show');
+  currentTicketAbonoVentaId = null;
+}
+
+function setTicketAbonoCuenta(cuenta, btn) {
+  currentTicketAbonoCuenta = cuenta;
+  document.querySelectorAll('#ticket-abono-cuenta-btns .account-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function saveTicketAbono() {
+  if (!currentTicketAbonoVentaId) return;
+  const venta = data.ventas.find(v => String(v.id) === String(currentTicketAbonoVentaId));
+  if (!venta) return;
+
+  const monto = parseFloat(document.getElementById('ticket-abono-monto').value) || 0;
+  if (!monto || monto <= 0) return alert('Ingresa un monto válido');
+
+  const fecha = document.getElementById('ticket-abono-fecha').value || todayStr();
+  const cliente = venta.cliente;
+
+  const row = {
+    id: Date.now(),
+    fecha: new Date().toISOString(),
+    dia: fecha,
+    cliente,
+    monto,
+    cuenta: currentTicketAbonoCuenta,
+    venta_id: venta.id
+  };
+
+  data.pagos.push(row);
+  recalcBalances();
+  save();
+
+  // Sync to Sheet
+  if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+    showSyncIndicator('Guardando abono...');
+    apiCall('addPago', row).then(hideSyncIndicator);
+    apiCall('updateCliente', {
+      nombre: cliente,
+      tipo: data.clientes[cliente].tipo,
+      saldo: data.clientes[cliente].saldo
+    });
+  }
+
+  closeTicketAbonoModal();
+  renderAdeudos();
+  renderDashboard();
+  renderAllTx();
+  renderAllClients();
+}
+
+function deleteTicketAbono(pagoId) {
+  if (!confirm('¿Eliminar este abono?')) return;
+  const pago = data.pagos.find(p => String(p.id) === String(pagoId));
+  if (!pago) return;
+  // Restaurar saldo del cliente
+  const cliente = pago.cliente;
+  if (data.clientes[cliente]) {
+    data.clientes[cliente].saldo = Number(data.clientes[cliente].saldo) + Number(pago.monto);
+  }
+  data.pagos = data.pagos.filter(p => String(p.id) !== String(pagoId));
+  recalcBalances();
+  save();
+
+  if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+    fetch(API_URL + '?action=deleteRow&sheet=Pagos&id=' + pagoId).catch(() => {});
+    apiCall('updateCliente', {
+      nombre: cliente,
+      tipo: data.clientes[cliente].tipo,
+      saldo: data.clientes[cliente].saldo
+    });
+  }
+
+  // Re-abrir el modal con datos actualizados
+  if (currentTicketAbonoVentaId) {
+    const id = currentTicketAbonoVentaId;
+    closeTicketAbonoModal();
+    openTicketAbonoModal(id);
+  }
+  renderAdeudos();
+  renderDashboard();
+  renderAllTx();
 }
 
 // ═══════════ MERMA MODAL ═══════════

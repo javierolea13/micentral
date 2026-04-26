@@ -14,7 +14,7 @@
 // HOJAS REQUERIDAS en el Sheet (con estos encabezados exactos en fila 1):
 // - Compras:         id | fecha | dia | proveedor | producto | cantidad | precio | total
 // - Ventas:          id | fecha | dia | cliente | producto | cantidad | total | tipo_cliente | status
-// - Pagos:           id | fecha | dia | cliente | monto | cuenta
+// - Pagos:           id | fecha | dia | cliente | monto | cuenta | venta_id
 // - Gastos:          id | fecha | dia | descripcion | categoria | total | cuenta
 // - Clientes:        nombre | tipo | saldo
 // - Productos:       nombre
@@ -35,7 +35,7 @@ function doGet(e) {
       var result = {
         compras: readSheet(ss, 'Compras', ['id','fecha','dia','proveedor','producto','cantidad','precio','total']),
         ventas: readSheet(ss, 'Ventas', ['id','fecha','dia','cliente','producto','cantidad','total','tipo_cliente','status']),
-        pagos: readSheet(ss, 'Pagos', ['id','fecha','dia','cliente','monto','cuenta']),
+        pagos: readSheet(ss, 'Pagos', ['id','fecha','dia','cliente','monto','cuenta','venta_id']),
         gastos: readSheet(ss, 'Gastos', ['id','fecha','dia','descripcion','categoria','total','cuenta']),
         mermas: readSheet(ss, 'Mermas', ['id','fecha','dia','cantidad','motivo','costo_unitario','total']),
         clientes: readClientes(ss),
@@ -79,11 +79,11 @@ function doGet(e) {
       return jsonResponse({success: true});
     }
 
-    // ── ADD PAGO ──
+    // ── ADD PAGO (con venta_id opcional para abonos por ticket) ──
     if (action === 'addPago') {
       var d = JSON.parse(e.parameter.data);
       var sheet = ss.getSheetByName('Pagos');
-      sheet.appendRow([d.id, d.fecha, d.dia, d.cliente, d.monto, d.cuenta]);
+      sheet.appendRow([d.id, d.fecha, d.dia, d.cliente, d.monto, d.cuenta, d.venta_id || '']);
       return jsonResponse({success: true});
     }
 
