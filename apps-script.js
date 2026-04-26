@@ -21,6 +21,7 @@
 // - Proveedores:     nombre
 // - CategoriasGasto: nombre
 // - Cuentas:         nombre
+// - Mermas:          id | fecha | dia | cantidad | motivo | costo_unitario | total
 // - Errors:          (se crea automáticamente cuando ocurre un error)
 // ═══════════════════════════════════════════════
 
@@ -36,6 +37,7 @@ function doGet(e) {
         ventas: readSheet(ss, 'Ventas', ['id','fecha','dia','cliente','producto','cantidad','total','tipo_cliente','status']),
         pagos: readSheet(ss, 'Pagos', ['id','fecha','dia','cliente','monto','cuenta']),
         gastos: readSheet(ss, 'Gastos', ['id','fecha','dia','descripcion','categoria','total','cuenta']),
+        mermas: readSheet(ss, 'Mermas', ['id','fecha','dia','cantidad','motivo','costo_unitario','total']),
         clientes: readClientes(ss),
         productos: readSimpleList(ss, 'Productos', ['Pollo']),
         proveedores: readSimpleList(ss, 'Proveedores', []),
@@ -90,6 +92,18 @@ function doGet(e) {
       var d = JSON.parse(e.parameter.data);
       var sheet = ss.getSheetByName('Gastos');
       sheet.appendRow([d.id, d.fecha, d.dia, d.descripcion, d.categoria || '', d.total, d.cuenta]);
+      return jsonResponse({success: true});
+    }
+
+    // ── ADD MERMA (pollos ahogados / inventario perdido) ──
+    if (action === 'addMerma') {
+      var d = JSON.parse(e.parameter.data);
+      var sheet = ss.getSheetByName('Mermas');
+      if (!sheet) {
+        sheet = ss.insertSheet('Mermas');
+        sheet.appendRow(['id','fecha','dia','cantidad','motivo','costo_unitario','total']);
+      }
+      sheet.appendRow([d.id, d.fecha, d.dia, d.cantidad, d.motivo || '', d.costo_unitario || 0, d.total || 0]);
       return jsonResponse({success: true});
     }
 

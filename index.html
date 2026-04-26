@@ -35,6 +35,14 @@
   --orange-border: rgba(251,191,36,0.25);
   --purple: #A78BFA;
   --purple-bg: rgba(167,139,250,0.1);
+  /* Chart palette — navy/cool tones para gráficas */
+  --chart-1: #3B82F6;        /* royal blue */
+  --chart-2: #1E40AF;        /* navy */
+  --chart-3: #06B6D4;        /* teal/cyan */
+  --chart-4: #64748B;        /* slate grey */
+  --chart-glow: rgba(59,130,246,0.35);
+  --chart-bg: rgba(59,130,246,0.08);
+  --chart-border: rgba(59,130,246,0.25);
   --radius: 16px;
   --radius-sm: 10px;
   --shadow: 0 4px 24px rgba(0,0,0,0.3);
@@ -359,6 +367,119 @@ body {
   font-size: 18px; font-weight: 800; color: var(--purple);
   letter-spacing: -0.4px;
 }
+
+/* ─── Insights page ─── */
+.insights-section { padding: 0 20px; margin-bottom: 16px; }
+.insight-card-min {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 16px 18px;
+}
+.insight-card-min .ic-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.insight-card-min .ic-title {
+  font-size: 13px; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.insight-card-min .ic-tag {
+  font-size: 10px; font-weight: 700; padding: 4px 10px;
+  border-radius: 999px; letter-spacing: 0.5px;
+  background: var(--chart-bg); color: var(--chart-1);
+  border: 1px solid var(--chart-border);
+  text-transform: uppercase;
+}
+.kpi-mini-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.kpi-mini {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px;
+}
+.kpi-mini-label {
+  font-size: 10px; color: var(--text3); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 4px; font-weight: 600;
+}
+.kpi-mini-value {
+  font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800;
+  letter-spacing: -0.5px; line-height: 1.1;
+}
+.kpi-mini-sub { font-size: 10px; color: var(--text2); margin-top: 3px; }
+
+/* Distribución de pollos: barra apilada */
+.stack-bar {
+  display: flex; height: 12px; border-radius: 999px; overflow: hidden;
+  background: var(--surface3); margin: 12px 0 14px;
+}
+.stack-bar-segment { transition: all .3s; }
+.stack-legend { display: flex; flex-direction: column; gap: 8px; }
+.stack-legend-row {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 13px;
+}
+.stack-legend-left { display: flex; align-items: center; gap: 10px; }
+.stack-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.stack-legend-name { color: var(--text); font-weight: 600; }
+.stack-legend-amount {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700; color: var(--text);
+}
+
+/* Bar chart de la semana (Insights) */
+.week-bars {
+  display: flex; align-items: flex-end; gap: 6px;
+  height: 110px; padding: 8px 0 22px;
+}
+.week-bar {
+  flex: 1; background: var(--chart-2); opacity: .55;
+  border-radius: 6px 6px 0 0; position: relative;
+  min-height: 4px; transition: all .25s;
+}
+.week-bar.active {
+  background: linear-gradient(180deg, var(--chart-1), var(--chart-2));
+  opacity: 1; box-shadow: 0 0 14px var(--chart-glow);
+}
+.week-bar-label {
+  position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; color: var(--text3); text-transform: uppercase;
+  letter-spacing: 0.5px; font-weight: 600;
+}
+.week-bar-value {
+  position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; color: var(--text2); font-weight: 700; white-space: nowrap;
+}
+
+/* Merma: lista de pollos ahogados */
+.merma-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.merma-row:last-child { border-bottom: none; padding-bottom: 0; }
+.merma-row:first-child { padding-top: 0; }
+.merma-left { display: flex; align-items: center; gap: 10px; }
+.merma-icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: var(--red-bg); border: 1px solid var(--red-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.merma-info { font-size: 13px; }
+.merma-info .qty { font-weight: 700; color: var(--text); }
+.merma-info .motivo { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.merma-amount {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800; color: var(--red); font-size: 15px;
+}
+
+.btn-merma {
+  width: 100%; padding: 11px 16px; border-radius: 12px;
+  background: var(--red-bg); color: var(--red);
+  border: 1px solid var(--red-border);
+  font-family: inherit; font-weight: 700; font-size: 13px;
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-merma:active { transform: scale(0.98); }
 
 /* ─── Date filter strip ─── */
 .date-filter {
@@ -1324,6 +1445,10 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
       Cartera
     </button>
+    <button class="sidebar-item" id="sb-insights" onclick="switchPage('insights')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+      Insights
+    </button>
   </nav>
   <div class="sidebar-divider"></div>
   <div class="sidebar-user">
@@ -1450,10 +1575,13 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
 
 <!-- ═══════════ PAGE: MOVIMIENTOS ═══════════ -->
 <div id="page-movimientos" class="page">
-  <div class="header">
-    <h1>Movimientos</h1>
+  <div class="header-stitch">
+    <div>
+      <p class="header-eyebrow">REGISTRO COMPLETO</p>
+      <h1>Movimientos</h1>
+    </div>
   </div>
-  <div style="padding: 16px 20px 0;">
+  <div style="padding: 8px 20px 0;">
     <div class="date-filter" id="date-filter-mov"></div>
     <div class="modal-tabs" id="filter-tabs">
       <button class="modal-tab active" onclick="filterTx('todos')">Todos</button>
@@ -1467,12 +1595,15 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
   </div>
 </div>
 
-<!-- ═══════════ PAGE: CLIENTES ═══════════ -->
+<!-- ═══════════ PAGE: CLIENTES (Cartera) ═══════════ -->
 <div id="page-clientes" class="page">
-  <div class="header">
-    <h1>Clientes</h1>
+  <div class="header-stitch">
+    <div>
+      <p class="header-eyebrow">CLIENTES Y SALDOS</p>
+      <h1>Cartera</h1>
+    </div>
   </div>
-  <div style="padding: 16px 20px 0;">
+  <div style="padding: 8px 20px 0;">
     <div class="modal-tabs">
       <button class="modal-tab active" id="tab-all-clients" onclick="filterClients('todos')">Todos</button>
       <button class="modal-tab" id="tab-clienta" onclick="filterClients('clienta')">Clientas</button>
@@ -1534,10 +1665,13 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
 
 <!-- ═══════════ PAGE: ADEUDOS ═══════════ -->
 <div id="page-adeudos" class="page">
-  <div class="header">
-    <h1>Adeudos</h1>
+  <div class="header-stitch">
+    <div>
+      <p class="header-eyebrow">DEUDAS POR ANTIGÜEDAD</p>
+      <h1>Adeudos</h1>
+    </div>
   </div>
-  <div style="padding:16px 20px 0;">
+  <div style="padding:8px 20px 0;">
     <p style="font-size:12px;color:var(--text3);margin-bottom:16px">Ordenados por deuda más antigua primero</p>
   </div>
   <div class="section">
@@ -1547,15 +1681,13 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
 
 <!-- ═══════════ PAGE: GASTOS ═══════════ -->
 <div id="page-gastos" class="page">
-  <div style="padding: 20px;">
-    <div class="detail-header">
-      <button class="back-btn" onclick="switchPage('inicio')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
-      <h2 style="font-family:'Outfit';font-size:22px;font-weight:800">Registro de Gasto</h2>
+  <div class="header-stitch">
+    <div>
+      <p class="header-eyebrow">EGRESOS DEL NEGOCIO</p>
+      <h1>Gastos</h1>
     </div>
-
-    <h2 style="font-family:'Outfit';font-size:24px;font-weight:800;margin-bottom:4px">Nuevo Gasto</h2>
+  </div>
+  <div style="padding: 8px 20px;">
     <p style="font-size:13px;color:var(--text3);margin-bottom:20px">Registra gastos operativos del negocio</p>
 
     <div class="form-group">
@@ -1602,6 +1734,147 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
   </div>
 </div>
 
+<!-- ═══════════ PAGE: INSIGHTS ═══════════ -->
+<div id="page-insights" class="page">
+  <div class="header-stitch">
+    <div>
+      <p class="header-eyebrow">ANÁLISIS DEL NEGOCIO</p>
+      <h1>Insights</h1>
+    </div>
+  </div>
+  <div style="padding: 8px 20px 0;">
+    <div class="date-filter" id="date-filter-insights"></div>
+  </div>
+
+  <!-- KPIs principales -->
+  <div class="insights-section">
+    <div class="insight-card-min">
+      <div class="ic-head">
+        <div class="ic-title">📊 Resumen del periodo</div>
+      </div>
+      <div class="kpi-mini-grid">
+        <div class="kpi-mini">
+          <div class="kpi-mini-label">VENTAS</div>
+          <div class="kpi-mini-value" style="color:var(--green)" id="ins-ventas">$0</div>
+          <div class="kpi-mini-sub" id="ins-ventas-sub">0 ops</div>
+        </div>
+        <div class="kpi-mini">
+          <div class="kpi-mini-label">COMPRAS</div>
+          <div class="kpi-mini-value" style="color:var(--chart-1)" id="ins-compras">$0</div>
+          <div class="kpi-mini-sub" id="ins-compras-sub">0 entradas</div>
+        </div>
+        <div class="kpi-mini">
+          <div class="kpi-mini-label">COBRADO</div>
+          <div class="kpi-mini-value" style="color:var(--orange)" id="ins-cobrado">$0</div>
+          <div class="kpi-mini-sub" id="ins-cobrado-sub">0 pagos</div>
+        </div>
+        <div class="kpi-mini">
+          <div class="kpi-mini-label">GASTOS</div>
+          <div class="kpi-mini-value" style="color:var(--red)" id="ins-gastos">$0</div>
+          <div class="kpi-mini-sub" id="ins-gastos-sub">0 gastos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Distribución de pollos -->
+  <div class="insights-section">
+    <div class="insight-card-min">
+      <div class="ic-head">
+        <div class="ic-title">🐔 Distribución de pollos</div>
+        <span class="ic-tag" id="ins-pollos-net">+0 NETO</span>
+      </div>
+      <div class="stack-bar" id="ins-stack-bar"></div>
+      <div class="stack-legend" id="ins-stack-legend"></div>
+    </div>
+  </div>
+
+  <!-- Ventas por día (semana) -->
+  <div class="insights-section">
+    <div class="insight-card-min">
+      <div class="ic-head">
+        <div class="ic-title">📈 Actividad por día</div>
+        <span class="ic-tag" id="ins-week-tag">7 DÍAS</span>
+      </div>
+      <div class="week-bars" id="ins-week-bars"></div>
+    </div>
+  </div>
+
+  <!-- Mermas -->
+  <div class="insights-section">
+    <div class="insight-card-min">
+      <div class="ic-head">
+        <div class="ic-title">⚠️ Mermas (pollos ahogados)</div>
+        <span class="ic-tag" id="ins-merma-tag" style="background:var(--red-bg);color:var(--red);border-color:var(--red-border)">0 POLLOS</span>
+      </div>
+      <div id="ins-merma-list"></div>
+      <div style="margin-top:14px">
+        <button class="btn-merma" onclick="openMermaModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><path d="M12 5v14M5 12h14"/></svg>
+          Registrar pollos ahogados
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top clientes -->
+  <div class="insights-section">
+    <div class="insight-card-min">
+      <div class="ic-head">
+        <div class="ic-title">🏆 Top clientes del periodo</div>
+      </div>
+      <div id="ins-top-clientes"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: REGISTRAR MERMA ═══════════ -->
+<div class="modal-overlay" id="merma-modal-overlay" onclick="if(event.target===this)closeMermaModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>🐔 Pollos ahogados</h2>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:16px">Registra pollos que se perdieron del inventario.</p>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>CANTIDAD DE POLLOS</label>
+        <input type="number" id="merma-cantidad" placeholder="0" inputmode="numeric" oninput="calcMermaTotal()">
+      </div>
+      <div class="form-group">
+        <label>COSTO UNITARIO</label>
+        <input type="number" id="merma-costo" placeholder="$0" inputmode="decimal" oninput="calcMermaTotal()">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>MOTIVO</label>
+      <select id="merma-motivo">
+        <option value="" disabled selected>Seleccionar...</option>
+        <option value="Calor">🌡️ Calor</option>
+        <option value="Asfixia">😵 Asfixia / aplastamiento</option>
+        <option value="Enfermedad">🤒 Enfermedad</option>
+        <option value="Ataque">🐕 Ataque (perro/gato/etc)</option>
+        <option value="Transporte">🚚 Lesión en transporte</option>
+        <option value="Otro">📦 Otro</option>
+      </select>
+    </div>
+
+    <div class="gasto-total-card" style="margin:14px 0">
+      <div>
+        <div class="label">PÉRDIDA TOTAL</div>
+        <div class="total-amount" id="merma-total-display" style="color:var(--red)">$0</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>FECHA</label>
+      <input type="date" id="merma-fecha">
+    </div>
+
+    <button class="btn-submit" style="background:var(--red)" onclick="saveMerma()">Registrar merma</button>
+  </div>
+</div>
+
 <!-- ═══════════ BOTTOM NAV ═══════════ -->
 <nav class="bottom-nav">
   <button class="nav-item active" id="nav-inicio" onclick="switchPage('inicio')">
@@ -1616,9 +1889,9 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
     GASTOS
   </button>
-  <button class="nav-item" id="nav-adeudos" onclick="switchPage('adeudos')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v2m0 4h.01M5.07 19H19a2 2 0 001.75-2.97L13.75 4a2 2 0 00-3.5 0L3.32 16.03A2 2 0 005.07 19z"/></svg>
-    ADEUDOS
+  <button class="nav-item" id="nav-insights" onclick="switchPage('insights')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+    INSIGHTS
   </button>
   <button class="nav-item" id="nav-clientes" onclick="switchPage('clientes')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
@@ -1891,6 +2164,7 @@ let data = {
   ventas: [],
   pagos: [],
   gastos: [],
+  mermas: [],
   clientes: {}
 };
 
@@ -1920,6 +2194,7 @@ async function loadFromSheets() {
     data.ventas = result.ventas || [];
     data.pagos = result.pagos || [];
     data.gastos = result.gastos || [];
+    data.mermas = result.mermas || [];
     data.clientes = result.clientes || {};
     if (result.productos && result.productos.length > 0) {
       productos = result.productos;
@@ -2113,9 +2388,11 @@ function renderAllScopes() {
   renderDateFilter('inicio');
   renderDateFilter('mov');
   renderDateFilter('gastos');
+  renderDateFilter('insights');
   if (typeof renderDashboard === 'function') renderDashboard();
   if (typeof renderAllTx === 'function') renderAllTx();
   if (typeof renderGastosList === 'function') renderGastosList();
+  if (typeof renderInsightsPage === 'function') renderInsightsPage();
 }
 
 function shiftDateRange(direction, scope) {
@@ -2131,7 +2408,8 @@ function shiftDateRange(direction, scope) {
 function renderDateFilter(scope) {
   const containerId = scope === 'mov' ? 'date-filter-mov'
                     : scope === 'gastos' ? 'date-filter-gastos'
-                    : scope === 'inicio' ? 'date-filter-inicio' : null;
+                    : scope === 'inicio' ? 'date-filter-inicio'
+                    : scope === 'insights' ? 'date-filter-insights' : null;
   if (!containerId) return;
   const el = document.getElementById(containerId);
   if (!el) return;
@@ -2350,6 +2628,7 @@ function switchPage(page) {
   if (page === 'gastos') renderGastosPage();
   if (page === 'clientes') renderAllClients();
   if (page === 'adeudos') renderAdeudos();
+  if (page === 'insights') renderInsightsPage();
 }
 
 // Pintar el usuario actual en el sidebar al cargar
@@ -3940,13 +4219,15 @@ function renderPolloChart(clientName) {
     const lastQty = lastWeek[i];
     const height = Math.max((qty / maxVal) * 90, qty > 0 ? 8 : 4);
     const isToday = i === todayIdx;
-    const barColor = isToday ? 'background:var(--green)' : 'background:var(--blue)';
+    const barColor = isToday
+      ? 'background:linear-gradient(180deg,var(--chart-1),var(--chart-2));box-shadow:0 0 12px var(--chart-glow)'
+      : 'background:var(--chart-2);opacity:.7';
 
-    // Reference line for this specific day
+    // Reference line for this specific day (semana pasada) - usar slate frío
     let refHtml = '';
     if (lastQty > 0) {
       const refBottom = (lastQty / maxVal) * 90;
-      refHtml = `<div style="position:absolute;left:-4px;right:-4px;bottom:${refBottom}px;border-top:2px dashed var(--orange);z-index:2"></div>`;
+      refHtml = `<div style="position:absolute;left:-4px;right:-4px;bottom:${refBottom}px;border-top:2px dashed var(--chart-4);z-index:2"></div>`;
     }
 
     return `<div class="chart-bar-group">
@@ -3964,10 +4245,271 @@ function renderPolloChart(clientName) {
       <div class="pollo-chart-title">🐔 Pollos esta semana</div>
       <div class="chart-bars">${barsHtml}</div>
       <div class="chart-legend">
-        <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--blue)"></div>Esta semana</div>
-        <div class="chart-legend-item"><div class="chart-legend-line"></div>Semana pasada</div>
+        <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--chart-1)"></div>Esta semana</div>
+        <div class="chart-legend-item"><div class="chart-legend-line" style="border-top-color:var(--chart-4)"></div>Semana pasada</div>
       </div>
     </div>`;
+}
+
+// ═══════════ INSIGHTS PAGE ═══════════
+function renderInsightsPage() {
+  renderDateFilter('insights');
+  const inRange = (it) => txInRange(it, dateRange, dateAnchor);
+
+  const ventasR = data.ventas.filter(inRange);
+  const comprasR = data.compras.filter(inRange);
+  const pagosR = data.pagos.filter(inRange);
+  const gastosR = (data.gastos||[]).filter(inRange);
+  const mermasR = (data.mermas||[]).filter(inRange);
+
+  const sumVentas = ventasR.reduce((s,v) => s + Number(v.total||0), 0);
+  const sumCompras = comprasR.reduce((s,c) => s + Number(c.total||0), 0);
+  const sumCobrado = pagosR.reduce((s,p) => s + Number(p.monto||0), 0);
+  const sumGastos = gastosR.reduce((s,g) => s + Number(g.total||0), 0);
+
+  // Top KPIs
+  const set = (id, val, sub) => {
+    const el = document.getElementById(id); if (el) el.textContent = val;
+    if (sub !== undefined) { const sb = document.getElementById(id+'-sub'); if (sb) sb.textContent = sub; }
+  };
+  set('ins-ventas', fmt(sumVentas), ventasR.length + ' ops');
+  set('ins-compras', fmt(sumCompras), comprasR.length + ' entradas');
+  set('ins-cobrado', fmt(sumCobrado), pagosR.length + ' pagos');
+  set('ins-gastos', fmt(sumGastos), gastosR.length + ' gastos');
+
+  // Distribución de pollos
+  renderInsightsPollosDistribution(ventasR, comprasR, mermasR);
+
+  // Activity bars (últimos 7 días o periodo)
+  renderInsightsWeekBars(ventasR);
+
+  // Mermas list
+  renderInsightsMermas(mermasR);
+
+  // Top clientes
+  renderInsightsTopClientes(ventasR, pagosR);
+}
+
+function renderInsightsPollosDistribution(ventasR, comprasR, mermasR) {
+  const isPollo = p => p && String(p).toLowerCase().includes('pollo');
+  const polloCompras = comprasR.filter(c => isPollo(c.producto)).reduce((s,c) => s + Number(c.cantidad||0), 0);
+  const polloVentas  = ventasR.filter(v  => isPollo(v.producto)).reduce((s,v) => s + Number(v.cantidad||0), 0);
+  const polloMermas  = mermasR.reduce((s,m) => s + Number(m.cantidad||0), 0);
+  const neto = polloCompras - polloVentas - polloMermas;
+
+  // Update tag
+  const tag = document.getElementById('ins-pollos-net');
+  if (tag) {
+    tag.textContent = (neto >= 0 ? '+' : '') + neto + ' NETO';
+    if (neto < 0) {
+      tag.style.background = 'var(--red-bg)';
+      tag.style.color = 'var(--red)';
+      tag.style.borderColor = 'var(--red-border)';
+    } else {
+      tag.style.background = '';
+      tag.style.color = '';
+      tag.style.borderColor = '';
+    }
+  }
+
+  // Stack bar (3 segmentos: Vendidos / Mermas / Stock restante hipotético)
+  const stack = document.getElementById('ins-stack-bar');
+  const legend = document.getElementById('ins-stack-legend');
+  if (!stack || !legend) return;
+
+  if (polloCompras === 0 && polloVentas === 0 && polloMermas === 0) {
+    stack.innerHTML = '';
+    legend.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:10px">Sin movimientos de pollo en este periodo</div>';
+    return;
+  }
+
+  // Calculamos distribución sobre el total de pollos comprados (input)
+  const base = Math.max(polloCompras, polloVentas + polloMermas);
+  const pctVentas = base > 0 ? (polloVentas / base) * 100 : 0;
+  const pctMermas = base > 0 ? (polloMermas / base) * 100 : 0;
+  const pctStock = base > 0 ? Math.max(0, 100 - pctVentas - pctMermas) : 0;
+
+  stack.innerHTML = `
+    <div class="stack-bar-segment" style="width:${pctVentas}%;background:var(--green)" title="Vendidos: ${polloVentas}"></div>
+    <div class="stack-bar-segment" style="width:${pctMermas}%;background:var(--red)" title="Mermas: ${polloMermas}"></div>
+    <div class="stack-bar-segment" style="width:${pctStock}%;background:var(--chart-2);opacity:.5" title="Stock disponible: ${neto >= 0 ? neto : 0}"></div>
+  `;
+  legend.innerHTML = `
+    <div class="stack-legend-row">
+      <div class="stack-legend-left"><div class="stack-legend-dot" style="background:var(--chart-1)"></div><span class="stack-legend-name">Comprados</span></div>
+      <div class="stack-legend-amount">${polloCompras}</div>
+    </div>
+    <div class="stack-legend-row">
+      <div class="stack-legend-left"><div class="stack-legend-dot" style="background:var(--green)"></div><span class="stack-legend-name">Vendidos</span></div>
+      <div class="stack-legend-amount">${polloVentas}</div>
+    </div>
+    <div class="stack-legend-row">
+      <div class="stack-legend-left"><div class="stack-legend-dot" style="background:var(--red)"></div><span class="stack-legend-name">Merma</span></div>
+      <div class="stack-legend-amount">${polloMermas}</div>
+    </div>
+    <div class="stack-legend-row" style="padding-top:8px;border-top:1px dashed var(--border);margin-top:4px">
+      <div class="stack-legend-left"><span class="stack-legend-name" style="color:var(--text2)">Stock disponible</span></div>
+      <div class="stack-legend-amount" style="color:${neto < 0 ? 'var(--red)' : 'var(--green)'}">${neto}</div>
+    </div>
+  `;
+}
+
+function renderInsightsWeekBars(ventasR) {
+  const wrap = document.getElementById('ins-week-bars');
+  if (!wrap) return;
+
+  // Agrupar por día
+  const byDay = {};
+  ventasR.forEach(v => {
+    const d = getTxDate(v);
+    if (!d) return;
+    const key = d.toISOString().split('T')[0];
+    byDay[key] = (byDay[key] || 0) + Number(v.total||0);
+  });
+
+  let entries = Object.entries(byDay).sort();
+  const tagEl = document.getElementById('ins-week-tag');
+  if (entries.length === 0) {
+    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;color:var(--text3);font-size:12px">Sin ventas en este periodo</div>';
+    if (tagEl) tagEl.textContent = 'SIN DATOS';
+    return;
+  }
+  if (entries.length > 7) entries = entries.slice(-7);
+  if (tagEl) tagEl.textContent = entries.length + (entries.length === 1 ? ' DÍA' : ' DÍAS');
+
+  const maxVal = Math.max(...entries.map(([,v]) => v));
+  wrap.innerHTML = entries.map(([key, val]) => {
+    const pct = maxVal > 0 ? (val / maxVal) * 100 : 0;
+    const [y,m,d] = key.split('-').map(Number);
+    const date = new Date(y, m-1, d);
+    const dayOfWeek = ['DOM','LUN','MAR','MIE','JUE','VIE','SAB'][date.getDay()];
+    const isMax = val === maxVal;
+    return `<div class="week-bar${isMax ? ' active' : ''}" style="height:${Math.max(pct, 6)}%">
+      <span class="week-bar-value">${fmt(val).replace('$','$')}</span>
+      <span class="week-bar-label">${dayOfWeek} ${date.getDate()}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderInsightsMermas(mermasR) {
+  const list = document.getElementById('ins-merma-list');
+  const tag = document.getElementById('ins-merma-tag');
+  if (!list) return;
+
+  const totalQty = mermasR.reduce((s,m) => s + Number(m.cantidad||0), 0);
+  if (tag) tag.textContent = totalQty + ' POLLO' + (totalQty === 1 ? '' : 'S');
+
+  if (mermasR.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:14px 0">Sin mermas registradas en este periodo. ¡Bien!</div>';
+    return;
+  }
+
+  const sorted = [...mermasR].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+  list.innerHTML = sorted.map(m => `
+    <div class="merma-row">
+      <div class="merma-left">
+        <div class="merma-icon">🐔</div>
+        <div class="merma-info">
+          <div class="qty">${m.cantidad} pollo${m.cantidad === 1 ? '' : 's'}</div>
+          <div class="motivo">${m.motivo || 'Sin motivo'} · ${formatDate(m.dia)}</div>
+        </div>
+      </div>
+      <div class="merma-amount">-${fmt(Number(m.total)||0)}</div>
+    </div>
+  `).join('');
+}
+
+function renderInsightsTopClientes(ventasR, pagosR) {
+  const list = document.getElementById('ins-top-clientes');
+  if (!list) return;
+
+  // Sumar ventas por cliente
+  const byClient = {};
+  ventasR.forEach(v => {
+    const c = v.cliente || '(sin cliente)';
+    byClient[c] = (byClient[c] || 0) + Number(v.total||0);
+  });
+
+  const sorted = Object.entries(byClient).sort((a,b) => b[1] - a[1]).slice(0, 5);
+  if (sorted.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:14px 0">Sin ventas en este periodo</div>';
+    return;
+  }
+
+  const max = sorted[0][1];
+  list.innerHTML = sorted.map(([name, total], i) => {
+    const pct = max > 0 ? (total / max) * 100 : 0;
+    const initials = name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+    return `<div style="padding:10px 0;border-bottom:${i < sorted.length-1 ? '1px solid var(--border)' : 'none'}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--chart-1),var(--chart-2));display:flex;align-items:center;justify-content:center;font-weight:800;color:white;font-size:11px;font-family:'Outfit'">${initials}</div>
+          <div style="font-size:13px;font-weight:700">${name}</div>
+        </div>
+        <div style="font-family:'Outfit';font-weight:800;color:var(--green)">${fmt(total)}</div>
+      </div>
+      <div style="height:4px;background:var(--surface3);border-radius:99px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--chart-1),var(--chart-2));border-radius:99px"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════ MERMA MODAL ═══════════
+function openMermaModal() {
+  // Auto-llenar costo unitario con el último precio de compra de pollo
+  const polloCompras = data.compras
+    .filter(c => c.producto && c.producto.toLowerCase().includes('pollo'))
+    .sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+  const lastCost = polloCompras.length > 0 ? Number(polloCompras[0].precio||0) : 0;
+
+  document.getElementById('merma-cantidad').value = '';
+  document.getElementById('merma-costo').value = lastCost > 0 ? lastCost : '';
+  document.getElementById('merma-motivo').value = '';
+  document.getElementById('merma-fecha').value = todayStr();
+  document.getElementById('merma-total-display').textContent = '$0';
+  document.getElementById('merma-modal-overlay').classList.add('show');
+}
+
+function closeMermaModal() {
+  document.getElementById('merma-modal-overlay').classList.remove('show');
+}
+
+function calcMermaTotal() {
+  const cant = parseFloat(document.getElementById('merma-cantidad').value) || 0;
+  const costo = parseFloat(document.getElementById('merma-costo').value) || 0;
+  const total = cant * costo;
+  document.getElementById('merma-total-display').textContent = fmt(total);
+}
+
+function saveMerma() {
+  const cantidad = parseFloat(document.getElementById('merma-cantidad').value) || 0;
+  const costo = parseFloat(document.getElementById('merma-costo').value) || 0;
+  const motivo = document.getElementById('merma-motivo').value;
+  const fecha = document.getElementById('merma-fecha').value || todayStr();
+
+  if (!cantidad) return alert('Ingresa la cantidad de pollos');
+  if (!motivo) return alert('Selecciona el motivo');
+
+  const row = {
+    id: Date.now(),
+    fecha: new Date().toISOString(),
+    dia: fecha,
+    cantidad,
+    motivo,
+    costo_unitario: costo,
+    total: cantidad * costo
+  };
+
+  data.mermas.push(row);
+  save();
+  closeMermaModal();
+  renderInsightsPage();
+
+  if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+    showSyncIndicator('Guardando merma...');
+    apiCall('addMerma', row).then(hideSyncIndicator);
+  }
 }
 
 // ═══════════ INIT ═══════════
