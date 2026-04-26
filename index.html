@@ -330,6 +330,22 @@ body {
   letter-spacing: -0.5px; line-height: 1.1;
 }
 .kpi-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
+.kpi-insight {
+  font-size: 10px; color: var(--text3);
+  margin-top: 10px; padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  line-height: 1.35;
+}
+.kpi-insight strong { color: var(--text); font-weight: 700; }
+.kpi-insight.up { color: var(--green); }
+.kpi-insight.down { color: var(--red); }
+.fiado-insight {
+  font-size: 11px; color: var(--text2);
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px dashed rgba(251,191,36,0.2);
+  position:relative; z-index:1;
+}
+.fiado-insight strong { color: var(--orange); font-weight: 700; }
 .kpi-card-wide {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -2597,6 +2613,43 @@ function recalcBalances() {
   if (needsSync) save();
 }
 
+// ═══════════ INSIGHTS HELPERS ═══════════
+// Agrupa items por su día (string YYYY-MM-DD) y devuelve el día con mayor suma
+function bestDayBy(items, getValue) {
+  const byDay = {};
+  items.forEach(it => {
+    const d = getTxDate(it);
+    if (!d) return;
+    const key = d.toISOString().split('T')[0];
+    byDay[key] = (byDay[key] || 0) + Number(getValue(it) || 0);
+  });
+  let bestKey = null, bestVal = 0;
+  Object.entries(byDay).forEach(([k, v]) => {
+    if (v > bestVal) { bestVal = v; bestKey = k; }
+  });
+  if (!bestKey) return null;
+  // Format day label
+  const [y,m,d] = bestKey.split('-').map(Number);
+  const dayDate = new Date(y, m-1, d);
+  const isToday = dayDate.toDateString() === new Date().toDateString();
+  const label = isToday ? 'hoy' : dayDate.toLocaleDateString('es-MX', { weekday:'short', day:'numeric', month:'short' });
+  return { date: dayDate, value: bestVal, label };
+}
+
+// Top item por monto agrupado
+function topByGroup(items, groupKey, getValue) {
+  const map = {};
+  items.forEach(it => {
+    const k = it[groupKey] || '(sin)';
+    map[k] = (map[k] || 0) + Number(getValue(it) || 0);
+  });
+  let topKey = null, topVal = 0;
+  Object.entries(map).forEach(([k, v]) => {
+    if (v > topVal) { topVal = v; topKey = k; }
+  });
+  return topKey ? { name: topKey, value: topVal } : null;
+}
+
 function renderDashboard() {
   recalcBalances();
   renderDateFilter('inicio');
@@ -2691,6 +2744,102 @@ function renderDashboard() {
   document.getElementById('debtors-list').innerHTML = sortedDebtors.length
     ? sortedDebtors.map(([name, c]) => renderClientItem(name, c)).join('')
     : '<div class="empty-state"><div class="emoji">✅</div><p>Nadie te debe. ¡Bien!</p></div>';
+
+  // ═══════════ MINI-INSIGHTS POR TARJETA ═══════════
+  renderInsights({
+    ventasHoy, comprasHoy, pagosHoy, gastosHoy,
+    totalVentas, totalCompras, totalCobrado, totalGastos, totalFiado
+  });
+}
+
+function renderInsights(ctx) {
+  const { ventasHoy, comprasHoy, pagosHoy, gastosHoy,
+          totalCobrado, totalGastos, totalFiado } = ctx;
+
+  // Helper to inject insight into a card
+  const inject = (cardSelector, html, className) => {
+    const card = document.querySelector(cardSelector);
+    if (!card) return;
+    let ins = card.querySelector('.kpi-insight, .fiado-insight');
+    if (!ins) {
+      ins = document.createElement('div');
+      ins.className = className || 'kpi-insight';
+      card.appendChild(ins);
+    } else {
+      ins.className = className || 'kpi-insight';
+    }
+    ins.innerHTML = html;
+  };
+
+  // ── FIADO: % cobrado del fiado en este periodo ──
+  // Fiado generado en el periodo = ventas a fiado dentro del rango (al momento de capturarlas)
+  // Pagos en el periodo = totalCobrado
+  const ventasFiadoPeriodo = ventasHoy
+    .filter(v => v._originalStatus === 'fiado' || v.status === 'fiado')
+    .reduce((s,v) => s + Number(v.total), 0);
+  let fiadoInsight;
+  if (ventasFiadoPeriodo === 0 && totalCobrado === 0) {
+    fiadoInsight = `<span style="color:var(--text3)">Sin movimientos de cobranza en este periodo</span>`;
+  } else if (ventasFiadoPeriodo === 0) {
+    fiadoInsight = `Cobrado este periodo: <strong>${fmt(totalCobrado)}</strong> (sin fiado nuevo)`;
+  } else {
+    const pct = Math.min(100, Math.round((totalCobrado / ventasFiadoPeriodo) * 100));
+    fiadoInsight = `Cobrado <strong>${fmt(totalCobrado)}</strong> de <strong>${fmt(ventasFiadoPeriodo)}</strong> fiado · <strong>${pct}%</strong> recuperado`;
+  }
+  const fiadoCard = document.querySelector('.fiado-card');
+  if (fiadoCard) {
+    let ins = fiadoCard.querySelector('.fiado-insight');
+    if (!ins) {
+      ins = document.createElement('div');
+      ins.className = 'fiado-insight';
+      fiadoCard.appendChild(ins);
+    }
+    ins.innerHTML = fiadoInsight;
+  }
+
+  // ── VENTAS: mejor día (en el rango) ──
+  const bestVenta = bestDayBy(ventasHoy, v => v.total);
+  const ventasInsight = bestVenta && dateRange !== 'dia'
+    ? `Mejor día: <strong>${bestVenta.label}</strong> · ${fmt(bestVenta.value)}`
+    : ventasHoy.length > 0
+      ? `Promedio por venta: <strong>${fmt(ventasHoy.reduce((s,v)=>s+Number(v.total),0) / ventasHoy.length)}</strong>`
+      : `<span style="color:var(--text3)">Sin ventas en este periodo</span>`;
+  inject('.kpi-card.kpi-green', ventasInsight);
+
+  // ── COMPRAS: top proveedor ──
+  const topProv = topByGroup(comprasHoy, 'proveedor', c => c.total);
+  const comprasInsight = topProv
+    ? `Top proveedor: <strong>${topProv.name}</strong> · ${fmt(topProv.value)}`
+    : `<span style="color:var(--text3)">Sin compras en este periodo</span>`;
+  inject('.kpi-card.kpi-blue', comprasInsight);
+
+  // ── COBRADO: mejor día de cobro ──
+  const bestCobro = bestDayBy(pagosHoy, p => p.monto);
+  const cobradoInsight = bestCobro && dateRange !== 'dia'
+    ? `Mejor día: <strong>${bestCobro.label}</strong> · ${fmt(bestCobro.value)}`
+    : pagosHoy.length > 0
+      ? `<strong>${pagosHoy.length}</strong> pagos · promedio ${fmt(totalCobrado / pagosHoy.length)}`
+      : `<span style="color:var(--text3)">Sin cobros en este periodo</span>`;
+  inject('.kpi-card.kpi-orange', cobradoInsight);
+
+  // ── GASTOS: categoría líder ──
+  const topCat = topByGroup(gastosHoy, 'categoria', g => g.total);
+  const gastosInsight = topCat && topCat.name !== '(sin)'
+    ? `Categoría líder: <strong>${topCat.name}</strong> · ${fmt(topCat.value)}`
+    : gastosHoy.length > 0
+      ? `<strong>${gastosHoy.length}</strong> gastos sin categoría asignada`
+      : `<span style="color:var(--text3)">Sin gastos en este periodo</span>`;
+  inject('.kpi-card.kpi-red', gastosInsight);
+
+  // ── POLLOS: mejor día por cantidad ──
+  const ventasPollo = ventasHoy.filter(v => v.producto && v.producto.toLowerCase().includes('pollo'));
+  const bestPollo = bestDayBy(ventasPollo, v => v.cantidad);
+  const polloInsight = bestPollo && dateRange !== 'dia'
+    ? `Mejor día: <strong>${bestPollo.label}</strong> · ${bestPollo.value} pollos`
+    : ventasPollo.length > 0
+      ? `Promedio por venta: <strong>${(ventasPollo.reduce((s,v)=>s+Number(v.cantidad||0),0) / ventasPollo.length).toFixed(1)}</strong> pollos`
+      : `<span style="color:var(--text3)">Sin pollos vendidos en este periodo</span>`;
+  inject('.kpi-card-wide', polloInsight);
 }
 
 function getAllTx() {
