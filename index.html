@@ -201,6 +201,43 @@ body {
   font-size: 9px; font-weight: 800; letter-spacing: 1px;
   text-transform: uppercase; display: block; margin-bottom: 2px;
 }
+
+/* ─── Date filter strip ─── */
+.date-filter {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 12px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 14px;
+  margin-bottom: 12px;
+}
+.date-filter-modes { display: flex; gap: 6px; }
+.date-filter-mode {
+  flex: 1; padding: 7px 10px; border-radius: 999px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text2); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all .15s;
+}
+.date-filter-mode.active {
+  background: var(--green); color: #0F1115; border-color: var(--green);
+}
+.date-filter-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 6px;
+}
+.date-filter-nav button {
+  background: var(--surface3); border: 1px solid var(--border);
+  border-radius: 8px; width: 32px; height: 32px;
+  color: var(--text2); cursor: pointer; font-size: 16px; font-weight: 700;
+}
+.date-filter-nav button:disabled { opacity: 0.3; cursor: default; }
+.date-filter-label {
+  flex: 1; text-align: center; font-size: 13px;
+  font-weight: 600; color: var(--text);
+}
+.date-filter-today {
+  font-size: 11px; padding: 4px 10px; border-radius: 999px;
+  background: var(--surface3); border: 1px solid var(--border);
+  color: var(--text2); cursor: pointer;
+}
 .tx-type-compra { color: var(--red); }
 .tx-type-venta { color: var(--green); }
 .tx-type-pago { color: var(--orange); }
@@ -1123,6 +1160,7 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
     <h1>Movimientos</h1>
   </div>
   <div style="padding: 16px 20px 0;">
+    <div class="date-filter" id="date-filter-mov"></div>
     <div class="modal-tabs" id="filter-tabs">
       <button class="modal-tab active" onclick="filterTx('todos')">Todos</button>
       <button class="modal-tab" onclick="filterTx('compra')">Compras</button>
@@ -1265,6 +1303,7 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
     <div class="gastos-history-header">
       <div class="section-title">Gastos recientes</div>
     </div>
+    <div class="date-filter" id="date-filter-gastos"></div>
     <div class="tx-list" id="gastos-list"></div>
   </div>
 </div>
@@ -1693,6 +1732,122 @@ try {
 } catch(e) {}
 function saveProductos() {
   try { localStorage.setItem('micentral_productos', JSON.stringify(productos)); } catch(e) {}
+}
+
+// ═══════════ FILTROS DE FECHA ═══════════
+// dateRange: 'dia' | 'semana' | 'mes' | 'todos'
+// dateAnchor: fecha de referencia (para navegar prev/next)
+let dateRange = 'todos';
+let dateAnchor = new Date();
+
+// Devuelve {start, end} como Date objects locales (00:00:00 a 23:59:59.999)
+function getDateRangeBounds(range, anchor) {
+  if (range === 'todos') return null;
+  const a = new Date(anchor);
+  a.setHours(0,0,0,0);
+  let start, end;
+  if (range === 'dia') {
+    start = new Date(a);
+    end = new Date(a); end.setHours(23,59,59,999);
+  } else if (range === 'semana') {
+    // Lunes (1) a Domingo (0). JS: getDay() 0=Dom..6=Sab
+    const dow = a.getDay();
+    const offsetToMon = dow === 0 ? 6 : dow - 1;
+    start = new Date(a); start.setDate(a.getDate() - offsetToMon);
+    end = new Date(start); end.setDate(start.getDate() + 6); end.setHours(23,59,59,999);
+  } else if (range === 'mes') {
+    start = new Date(a.getFullYear(), a.getMonth(), 1);
+    end = new Date(a.getFullYear(), a.getMonth() + 1, 0, 23,59,59,999);
+  }
+  return { start, end };
+}
+
+// Toma cualquier formato de fecha en una transacción y devuelve un Date local, o null
+function getTxDate(tx) {
+  // Prioridad: dia (canónico) > fecha (timestamp). Aceptamos string ISO o YYYY-MM-DD
+  const raw = tx.dia || tx.fecha;
+  if (!raw) return null;
+  const s = String(raw);
+  // Si es YYYY-MM-DD puro, parseamos como local (no UTC) para evitar offset
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [y,m,d] = s.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return null;
+  // Normalizar a fecha local (sin hora) para comparaciones
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes());
+}
+
+function txInRange(tx, range, anchor) {
+  if (range === 'todos') return true;
+  const bounds = getDateRangeBounds(range, anchor);
+  if (!bounds) return true;
+  const d = getTxDate(tx);
+  if (!d) return false;
+  return d >= bounds.start && d <= bounds.end;
+}
+
+const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function formatDateFilterLabel(range, anchor) {
+  if (range === 'todos') return 'Todo el histórico';
+  const bounds = getDateRangeBounds(range, anchor);
+  const fmt = d => d.toLocaleDateString('es-MX', { day:'numeric', month:'short' });
+  if (range === 'dia') {
+    const isToday = bounds.start.toDateString() === new Date().toDateString();
+    return isToday ? 'Hoy · ' + fmt(bounds.start) : fmt(bounds.start);
+  }
+  if (range === 'semana') return fmt(bounds.start) + ' – ' + fmt(bounds.end);
+  if (range === 'mes') return MONTHS_ES[bounds.start.getMonth()] + ' ' + bounds.start.getFullYear();
+}
+
+function setDateRange(range, scope) {
+  dateRange = range;
+  dateAnchor = new Date(); // reset anchor a hoy al cambiar modo
+  renderDateFilter(scope);
+  if (scope === 'mov') renderAllTx();
+  else if (scope === 'gastos') renderGastosList();
+}
+
+function shiftDate(direction, scope) {
+  const a = new Date(dateAnchor);
+  if (dateRange === 'dia') a.setDate(a.getDate() + direction);
+  else if (dateRange === 'semana') a.setDate(a.getDate() + 7*direction);
+  else if (dateRange === 'mes') a.setMonth(a.getMonth() + direction);
+  else return;
+  dateAnchor = a;
+  renderDateFilter(scope);
+  if (scope === 'mov') renderAllTx();
+  else if (scope === 'gastos') renderGastosList();
+}
+
+function jumpToToday(scope) {
+  dateAnchor = new Date();
+  renderDateFilter(scope);
+  if (scope === 'mov') renderAllTx();
+  else if (scope === 'gastos') renderGastosList();
+}
+
+function renderDateFilter(scope) {
+  const containerId = scope === 'mov' ? 'date-filter-mov' : 'date-filter-gastos';
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const modes = [['dia','Día'],['semana','Semana'],['mes','Mes'],['todos','Todo']];
+  const navHidden = dateRange === 'todos' ? 'visibility:hidden' : '';
+  el.innerHTML = `
+    <div class="date-filter-modes">
+      ${modes.map(([k,label]) =>
+        `<button class="date-filter-mode${dateRange===k?' active':''}" onclick="setDateRange('${k}','${scope}')">${label}</button>`
+      ).join('')}
+    </div>
+    <div class="date-filter-nav" style="${navHidden}">
+      <button onclick="shiftDate(-1,'${scope}')">‹</button>
+      <span class="date-filter-label">${formatDateFilterLabel(dateRange, dateAnchor)}</span>
+      <button onclick="shiftDate(1,'${scope}')">›</button>
+      <button class="date-filter-today" onclick="jumpToToday('${scope}')">Hoy</button>
+    </div>
+  `;
 }
 
 // ═══════════ CATÁLOGOS DESDE EL SHEET ═══════════
@@ -2611,11 +2766,13 @@ function renderClientItem(name, c) {
 
 // ═══════════ ALL TRANSACTIONS ═══════════
 function renderAllTx() {
+  renderDateFilter('mov');
   let txs = getAllTx();
+  txs = txs.filter(t => txInRange(t, dateRange, dateAnchor));
   if (currentFilter !== 'todos') txs = txs.filter(t => t._type === currentFilter);
   document.getElementById('tx-all').innerHTML = txs.length
     ? txs.map(renderTxItem).join('')
-    : '<div class="empty-state"><div class="emoji">📋</div><p>No hay movimientos de este tipo.</p></div>';
+    : '<div class="empty-state"><div class="emoji">📋</div><p>No hay movimientos en este rango.</p></div>';
 }
 function filterTx(type) {
   currentFilter = type;
@@ -2885,10 +3042,12 @@ function onGastoCategoriaChange(sel) {
 }
 
 function renderGastosList() {
-  const sorted = [...data.gastos].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  renderDateFilter('gastos');
+  const filtered = [...data.gastos].filter(g => txInRange(g, dateRange, dateAnchor));
+  const sorted = filtered.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
   const list = document.getElementById('gastos-list');
   if (!sorted.length) {
-    list.innerHTML = '<div class="empty-state"><div class="emoji">🧾</div><p>Sin gastos registrados aún.</p></div>';
+    list.innerHTML = '<div class="empty-state"><div class="emoji">🧾</div><p>Sin gastos en este rango.</p></div>';
     return;
   }
   list.innerHTML = sorted.map(g => `<div class="tx-item" style="flex-wrap:wrap">
