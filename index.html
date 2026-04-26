@@ -2013,6 +2013,7 @@ function saveCompra() {
   closeModal();
   clearForm('compra');
   renderDashboard();
+  renderAllTx();
   // Sync to Sheets
   if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
     showSyncIndicator('Guardando...');
@@ -2075,6 +2076,8 @@ function saveVenta() {
   closeModal();
   clearForm('venta');
   renderDashboard();
+  renderAllTx();
+  renderAllClients();
 }
 
 // ═══════════ PAGO: VENTAS FIADAS ═══════════
@@ -2170,6 +2173,7 @@ function savePago() {
   closeModal();
   clearForm('pago');
   renderDashboard();
+  renderAllTx();
   renderAllClients();
   if (currentDetailClient) showClientDetail(currentDetailClient);
   // Sync to Sheets
@@ -2827,6 +2831,8 @@ function confirmAbono() {
   // Re-render client detail history
   showClientDetail(name);
   renderDashboard();
+  renderAllTx();
+  renderAllClients();
 }
 
 
@@ -2914,6 +2920,7 @@ function saveGasto() {
   save();
   renderGastosList();
   renderDashboard();
+  renderAllTx();
 
   // Clear form
   document.getElementById('gasto-descripcion').value = '';
