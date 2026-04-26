@@ -202,6 +202,148 @@ body {
   text-transform: uppercase; display: block; margin-bottom: 2px;
 }
 
+/* ═══════════ NUEVO INICIO (estilo Stitch) ═══════════ */
+.header-stitch {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 22px 20px 8px;
+}
+.header-stitch h1 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 24px; font-weight: 700; letter-spacing: -0.4px;
+}
+.header-stitch h1 span { color: var(--green); }
+.header-stitch .header-eyebrow {
+  font-size: 10px; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 1.5px;
+  margin-bottom: 2px;
+}
+.header-stitch .header-actions { display:flex; gap:6px; align-items:center; }
+
+.px-section { padding: 0 20px; margin-bottom: 14px; }
+
+/* Hero card: saldo del periodo */
+.hero-card {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 22px 22px 20px;
+  position: relative; overflow: hidden;
+}
+.hero-card::before {
+  content:''; position:absolute; top:-40px; right:-40px;
+  width:140px; height:140px; border-radius:50%;
+  background: radial-gradient(circle, rgba(52,211,153,0.18) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero-label {
+  font-size: 11px; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+.hero-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 38px; font-weight: 800;
+  letter-spacing: -1.2px; line-height: 1;
+  margin-bottom: 8px;
+}
+.hero-value.negative { color: var(--red); }
+.hero-trend {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; font-weight: 600;
+  padding: 3px 10px; border-radius: 999px;
+  background: var(--green-bg); color: var(--green);
+  border: 1px solid var(--green-border);
+}
+.hero-trend.down {
+  background: var(--red-bg); color: var(--red);
+  border-color: var(--red-border);
+}
+
+/* Fiado destacado (estilo alerta) */
+.fiado-card {
+  background: var(--surface);
+  border: 1.5px solid var(--orange);
+  border-radius: 20px; padding: 18px 20px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(251,191,36,0.15), 0 8px 32px rgba(251,191,36,0.08);
+}
+.fiado-card::after {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background: radial-gradient(circle at top right, rgba(251,191,36,0.12) 0%, transparent 60%);
+}
+.fiado-card .fiado-row {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  position:relative; z-index:1;
+}
+.fiado-label {
+  font-size: 11px; color: var(--orange);
+  text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;
+  margin-bottom: 6px;
+}
+.fiado-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 32px; font-weight: 800;
+  letter-spacing: -1px; line-height: 1; color: var(--text);
+}
+.fiado-sub { font-size: 12px; color: var(--text3); margin-top: 6px; }
+.fiado-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--orange-bg); border: 1px solid var(--orange-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.fiado-divider {
+  height:1px; background: var(--border); margin: 14px 0 10px;
+  position:relative; z-index:1;
+}
+.fiado-footer {
+  display:flex; justify-content:space-between; align-items:center;
+  font-size: 12px; color: var(--text2); position:relative; z-index:1;
+}
+
+/* KPI grid 2x2 */
+.kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 14px 16px;
+  transition: transform .15s;
+  position: relative; overflow: hidden;
+}
+.kpi-card:active { transform: scale(0.98); }
+.kpi-card .kpi-accent {
+  width: 28px; height: 3px; border-radius: 2px;
+  margin-bottom: 10px;
+}
+.kpi-green .kpi-accent { background: var(--green); }
+.kpi-blue .kpi-accent { background: var(--blue); }
+.kpi-orange .kpi-accent { background: var(--orange); }
+.kpi-red .kpi-accent { background: var(--red); }
+.kpi-purple .kpi-accent { background: var(--purple); }
+.kpi-label {
+  font-size: 10px; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 1.2px;
+  margin-bottom: 4px;
+}
+.kpi-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px; font-weight: 800;
+  letter-spacing: -0.5px; line-height: 1.1;
+}
+.kpi-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
+.kpi-card-wide {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 16px 18px;
+}
+.kpi-card-wide .pollos-row {
+  display:flex; justify-content:space-between; align-items:flex-end;
+}
+.kpi-value-sm {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px; font-weight: 800; color: var(--purple);
+  letter-spacing: -0.4px;
+}
+
 /* ─── Date filter strip ─── */
 .date-filter {
   display: flex; flex-direction: column; gap: 8px;
@@ -1066,9 +1208,12 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
 
 <!-- ═══════════ PAGE: INICIO ═══════════ -->
 <div id="page-inicio" class="page active">
-  <div class="header">
-    <h1>Mi <span>Central</span></h1>
-    <div style="display:flex;align-items:center;gap:6px">
+  <div class="header-stitch">
+    <div>
+      <p class="header-eyebrow" id="dashboard-subtitle">RESUMEN</p>
+      <h1>Mi <span>Central</span></h1>
+    </div>
+    <div class="header-actions">
       <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
       <button class="logout-btn" onclick="logout()" title="Cerrar sesión">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -1076,66 +1221,87 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
     </div>
   </div>
 
-  <div style="padding:16px 20px 0;">
-    <p style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px" id="dashboard-subtitle">RESUMEN</p>
-    <h2 style="font-family:'Outfit';font-size:20px;font-weight:800;margin-bottom:12px">Dashboard</h2>
+  <div class="px-section">
     <div class="date-filter" id="date-filter-inicio"></div>
   </div>
-  <div class="summary">
-    <div class="summary-card card-green">
-      <div class="card-icon card-icon-green">📈</div>
-      <div class="label">Ventas hoy</div>
-      <div class="value" id="sum-ventas">$0</div>
-      <div class="sub"><span class="sub-badge sub-badge-green" id="sum-ventas-count">0 ops</span></div>
-    </div>
-    <div class="summary-card card-red">
-      <div class="card-icon card-icon-red">⚠️</div>
-      <div class="label">Fiado total</div>
-      <div class="value" id="sum-fiado">$0</div>
-      <div class="sub"><span class="sub-badge sub-badge-red" id="sum-fiado-count">0 clientes</span></div>
-    </div>
-    <div class="summary-card card-blue">
-      <div class="card-icon card-icon-blue">🛒</div>
-      <div class="label">Compras hoy</div>
-      <div class="value" id="sum-compras">$0</div>
-      <div class="sub"><span class="sub-badge" style="background:var(--blue-bg);color:var(--blue)" id="sum-compras-count">0 entradas</span></div>
-    </div>
-    <div class="summary-card card-orange">
-      <div class="card-icon card-icon-orange">✅</div>
-      <div class="label">Cobrado hoy</div>
-      <div class="value" id="sum-cobrado">$0</div>
-      <div class="sub"><span class="sub-badge" style="background:var(--orange-bg);color:var(--orange)" id="sum-cobrado-count">0 pagos</span></div>
+
+  <!-- HERO: Saldo del periodo -->
+  <div class="px-section">
+    <div class="hero-card">
+      <div class="hero-label">SALDO DEL PERIODO</div>
+      <div class="hero-value" id="hero-saldo">$0</div>
+      <div class="hero-trend" id="hero-trend">+0% vs periodo anterior</div>
     </div>
   </div>
-  <div style="padding:0 20px 12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-    <div class="summary-card" style="border-color:var(--purple)">
-      <div class="card-icon card-icon-purple">🐔</div>
-      <div class="label">Pollos vendidos</div>
-      <div class="value" style="color:var(--purple)" id="sum-pollos-qty">0</div>
-      <div class="sub" id="sum-pollos-qty-sub">hoy</div>
-    </div>
-    <div class="summary-card" style="border-color:var(--purple)">
-      <div class="card-icon card-icon-purple">💰</div>
-      <div class="label">Valor pollos</div>
-      <div class="value" style="color:var(--purple)" id="sum-pollos-val">$0</div>
-      <div class="sub" id="sum-pollos-val-sub">hoy</div>
-    </div>
-  </div>
-  <div style="padding:0 20px 12px;">
-    <div class="summary-card card-red">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div class="card-icon card-icon-red">🧾</div>
+
+  <!-- FIADO destacado -->
+  <div class="px-section">
+    <div class="fiado-card">
+      <div class="fiado-row">
         <div>
-          <div class="label">Gastos hoy</div>
-          <div class="value" id="sum-gastos">$0</div>
-          <div class="sub"><span class="sub-badge sub-badge-red" id="sum-gastos-count">0 gastos</span></div>
+          <div class="fiado-label">Fiado</div>
+          <div class="fiado-value" id="sum-fiado">$0</div>
+          <div class="fiado-sub">Cuentas pendientes de cobro</div>
+        </div>
+        <div class="fiado-icon">⚠️</div>
+      </div>
+      <div class="fiado-divider"></div>
+      <div class="fiado-footer">
+        <span id="sum-fiado-count">0 clientes</span>
+        <button class="see-all" style="background:transparent;border:none;color:var(--orange);font-weight:600;cursor:pointer" onclick="switchPage('clientes')">Ver cartera →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs 2x2 -->
+  <div class="px-section">
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-green">
+        <div class="kpi-accent"></div>
+        <div class="kpi-label">Ventas</div>
+        <div class="kpi-value" id="sum-ventas">$0</div>
+        <div class="kpi-sub" id="sum-ventas-count">0 ops</div>
+      </div>
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-accent"></div>
+        <div class="kpi-label">Compras</div>
+        <div class="kpi-value" id="sum-compras">$0</div>
+        <div class="kpi-sub" id="sum-compras-count">0 entradas</div>
+      </div>
+      <div class="kpi-card kpi-orange">
+        <div class="kpi-accent"></div>
+        <div class="kpi-label">Cobrado</div>
+        <div class="kpi-value" id="sum-cobrado">$0</div>
+        <div class="kpi-sub" id="sum-cobrado-count">0 pagos</div>
+      </div>
+      <div class="kpi-card kpi-red">
+        <div class="kpi-accent"></div>
+        <div class="kpi-label">Gastos</div>
+        <div class="kpi-value" id="sum-gastos">$0</div>
+        <div class="kpi-sub" id="sum-gastos-count">0 gastos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pollos -->
+  <div class="px-section">
+    <div class="kpi-card-wide">
+      <div class="kpi-label">🐔 Pollos vendidos</div>
+      <div class="pollos-row" style="margin-top:10px">
+        <div>
+          <div class="kpi-value" style="color:var(--purple)" id="sum-pollos-qty">0</div>
+          <div class="kpi-sub" id="sum-pollos-qty-sub">unidades</div>
+        </div>
+        <div style="text-align:right">
+          <div class="kpi-value-sm" id="sum-pollos-val">$0</div>
+          <div class="kpi-sub">en ventas</div>
         </div>
       </div>
     </div>
   </div>
   <div class="section">
     <div class="section-header">
-      <div class="section-title">Movimientos</div>
+      <div class="section-title">Movimientos recientes</div>
       <button class="see-all" onclick="switchPage('movimientos')">Ver todos →</button>
     </div>
     <div class="tx-compact-list" id="tx-recent"></div>
@@ -2448,6 +2614,45 @@ function renderDashboard() {
   const totalGastos = gastosHoy.reduce((s, g) => s + (Number(g.total) || 0), 0);
   const deudores = Object.entries(data.clientes).filter(([,c]) => Number(c.saldo) > 0);
   const totalFiado = deudores.reduce((s,[,c]) => s + Number(c.saldo), 0);
+
+  // Saldo del periodo: lo que entra (cobrado) menos lo que sale (compras + gastos)
+  // Ventas a fiado no cuentan porque aún no hay efectivo en mano
+  const saldoPeriodo = totalCobrado - totalCompras - totalGastos;
+
+  // Comparativo: mismo cálculo en el periodo anterior (para Día/Semana/Mes)
+  let trendPct = null;
+  if (dateRange !== 'todos') {
+    const prevAnchor = new Date(dateAnchor);
+    if (dateRange === 'dia') prevAnchor.setDate(prevAnchor.getDate() - 1);
+    else if (dateRange === 'semana') prevAnchor.setDate(prevAnchor.getDate() - 7);
+    else if (dateRange === 'mes') prevAnchor.setMonth(prevAnchor.getMonth() - 1);
+    const prevInRange = (item) => txInRange(item, dateRange, prevAnchor);
+    const prevCobrado = data.pagos.filter(prevInRange).reduce((s,p) => s + Number(p.monto), 0);
+    const prevCompras = data.compras.filter(prevInRange).reduce((s,c) => s + Number(c.total), 0);
+    const prevGastos = (data.gastos || []).filter(prevInRange).reduce((s,g) => s + Number(g.total), 0);
+    const prevSaldo = prevCobrado - prevCompras - prevGastos;
+    if (prevSaldo !== 0) {
+      trendPct = ((saldoPeriodo - prevSaldo) / Math.abs(prevSaldo)) * 100;
+    }
+  }
+
+  // Hero card
+  const heroEl = document.getElementById('hero-saldo');
+  if (heroEl) {
+    heroEl.textContent = (saldoPeriodo < 0 ? '-' : '') + fmt(Math.abs(saldoPeriodo));
+    heroEl.classList.toggle('negative', saldoPeriodo < 0);
+  }
+  const trendEl = document.getElementById('hero-trend');
+  if (trendEl) {
+    if (trendPct === null) {
+      trendEl.textContent = 'Sin comparativo';
+      trendEl.classList.remove('down');
+    } else {
+      const arrow = trendPct >= 0 ? '↗' : '↘';
+      trendEl.textContent = `${arrow} ${trendPct >= 0 ? '+' : ''}${trendPct.toFixed(1)}% vs periodo anterior`;
+      trendEl.classList.toggle('down', trendPct < 0);
+    }
+  }
 
   // Subtitle dinámico según el rango
   const subtitleEl = document.getElementById('dashboard-subtitle');
