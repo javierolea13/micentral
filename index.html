@@ -1224,6 +1224,13 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
     </div>
 
     <div class="form-group">
+      <label>CATEGORÍA</label>
+      <select id="gasto-categoria" onchange="onGastoCategoriaChange(this)">
+        <option value="" disabled selected>Seleccionar...</option>
+      </select>
+    </div>
+
+    <div class="form-group">
       <label>MONTO</label>
       <input type="number" id="gasto-precio" placeholder="$0" inputmode="decimal" oninput="calcGastoTotal()">
     </div>
@@ -1238,20 +1245,7 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
     <div class="form-group">
       <label>PAGADO CON</label>
     </div>
-    <div class="account-btns" id="gasto-cuenta-btns">
-      <button class="account-btn active" onclick="setGastoCuenta('efectivo', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
-        EFECTIVO
-      </button>
-      <button class="account-btn" onclick="setGastoCuenta('banco', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
-        BANCO
-      </button>
-      <button class="account-btn" onclick="setGastoCuenta('caja', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/><path d="M6 14h.01M10 14h.01"/></svg>
-        CAJA
-      </button>
-    </div>
+    <div class="account-btns" id="gasto-cuenta-btns"></div>
 
     <div class="form-group">
       <label>FECHA</label>
@@ -1383,20 +1377,7 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
       <div class="form-group">
         <label>PAGADO CON / CUENTA</label>
       </div>
-      <div class="account-btns" id="pago-cuenta-btns">
-        <button class="account-btn active" onclick="setPagoCuenta('efectivo', this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
-          EFECTIVO
-        </button>
-        <button class="account-btn" onclick="setPagoCuenta('banco', this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
-          BANCO
-        </button>
-        <button class="account-btn" onclick="setPagoCuenta('caja', this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/><path d="M6 14h.01M10 14h.01"/></svg>
-          CAJA
-        </button>
-      </div>
+      <div class="account-btns" id="pago-cuenta-btns"></div>
       <div class="form-group">
         <label>Fecha</label>
         <input type="date" id="pago-fecha" value="">
@@ -1469,20 +1450,7 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
     <div class="form-group">
       <label>PAGADO CON / CUENTA</label>
     </div>
-    <div class="account-btns" id="abono-cuenta-btns">
-      <button class="account-btn active" onclick="setAbonoCuenta('efectivo', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
-        EFECTIVO
-      </button>
-      <button class="account-btn" onclick="setAbonoCuenta('banco', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
-        BANCO
-      </button>
-      <button class="account-btn" onclick="setAbonoCuenta('caja', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/><path d="M6 14h.01M10 14h.01"/></svg>
-        CAJA
-      </button>
-    </div>
+    <div class="account-btns" id="abono-cuenta-btns"></div>
 
     <div class="form-group">
       <label>FECHA</label>
@@ -1615,6 +1583,11 @@ async function loadFromSheets() {
       productos = result.productos;
       saveProductos();
     }
+    if (Array.isArray(result.proveedores)) proveedores = result.proveedores;
+    if (Array.isArray(result.categoriasGasto)) categoriasGasto = result.categoriasGasto;
+    if (Array.isArray(result.cuentas) && result.cuentas.length > 0) cuentas = result.cuentas;
+    saveCatalogos();
+    refreshCatalogUI();
     backfillOriginalStatus();
     // Also save locally as cache
     try { localStorage.setItem('micentral_data', JSON.stringify(data)); } catch(e) {}
@@ -1712,6 +1685,57 @@ try {
 } catch(e) {}
 function saveProductos() {
   try { localStorage.setItem('micentral_productos', JSON.stringify(productos)); } catch(e) {}
+}
+
+// ═══════════ CATÁLOGOS DESDE EL SHEET ═══════════
+let proveedores = [];
+let categoriasGasto = [];
+let cuentas = ['efectivo','banco','caja'];
+try {
+  const c1 = localStorage.getItem('micentral_proveedores');
+  if (c1) proveedores = JSON.parse(c1);
+  const c2 = localStorage.getItem('micentral_categoriasGasto');
+  if (c2) categoriasGasto = JSON.parse(c2);
+  const c3 = localStorage.getItem('micentral_cuentas');
+  if (c3) cuentas = JSON.parse(c3);
+} catch(e) {}
+function saveCatalogos() {
+  try {
+    localStorage.setItem('micentral_proveedores', JSON.stringify(proveedores));
+    localStorage.setItem('micentral_categoriasGasto', JSON.stringify(categoriasGasto));
+    localStorage.setItem('micentral_cuentas', JSON.stringify(cuentas));
+  } catch(e) {}
+}
+
+// Iconos SVG para botones de cuenta — fallback "💳" para cuentas no conocidas
+const CUENTA_ICONS = {
+  efectivo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>',
+  banco: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>',
+  caja: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/><path d="M6 14h.01M10 14h.01"/></svg>',
+  transferencia: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>',
+  tarjeta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>'
+};
+function cuentaIcon(name) {
+  const key = String(name||'').toLowerCase().trim();
+  return CUENTA_ICONS[key] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 12h8"/></svg>';
+}
+
+// Renderiza botones de cuenta dinámicos en cualquier contenedor
+function renderCuentaBtns(containerId, onClickFnName, currentCuenta) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = cuentas.map((c, i) => {
+    const active = (currentCuenta || cuentas[0]) === c ? ' active' : '';
+    return `<button class="account-btn${active}" onclick="${onClickFnName}('${c}', this)">
+      ${cuentaIcon(c)}
+      ${String(c).toUpperCase()}
+    </button>`;
+  }).join('');
+}
+
+function getCategoriaOptions(selected) {
+  const opts = categoriasGasto.map(c => `<option value="${c}"${c===selected?' selected':''}>${c}</option>`).join('');
+  return `<option value="" disabled${selected?'':' selected'}>Seleccionar...</option>${opts}<option value="__nuevo__">＋ Agregar categoría...</option>`;
 }
 
 // ═══════════ VENTA LINE ITEMS ═══════════
@@ -1907,6 +1931,7 @@ function setModalType(type) {
   document.getElementById('form-venta').style.display = type === 'venta' ? 'block' : 'none';
   document.getElementById('form-pago').style.display = type === 'pago' ? 'block' : 'none';
   if (type === 'compra') updateProveedorSuggestions();
+  if (type === 'pago') renderCuentaBtns('pago-cuenta-btns', 'setPagoCuenta', currentPagoCuenta);
   if (type === 'venta') {
     if (ventaLines.length === 0) addVentaLine();
     updateClientSuggestions();
@@ -1930,9 +1955,27 @@ function setPayStatus(status) {
 
 // ═══════════ PROVEEDORES ═══════════
 function updateProveedorSuggestions() {
-  const provs = [...new Set(data.compras.map(c => c.proveedor).filter(p => p))];
+  // Une catálogo + nombres usados en compras (por si hay alguno legacy no catalogado)
+  const fromCompras = data.compras.map(c => c.proveedor).filter(p => p);
+  const provs = [...new Set([...proveedores, ...fromCompras])];
   const dl = document.getElementById('proveedor-suggestions');
   if (dl) dl.innerHTML = provs.map(p => `<option value="${p}">`).join('');
+}
+
+// Refresca todos los elementos de UI que dependen de los catálogos
+function refreshCatalogUI() {
+  // Datalist de proveedores
+  updateProveedorSuggestions();
+  // Botones de cuenta en formularios
+  renderCuentaBtns('gasto-cuenta-btns', 'setGastoCuenta', currentGastoCuenta);
+  renderCuentaBtns('pago-cuenta-btns', 'setPagoCuenta', currentPagoCuenta);
+  renderCuentaBtns('abono-cuenta-btns', 'setAbonoCuenta', abonoCuenta);
+  // Dropdown de categoría de gasto
+  const sel = document.getElementById('gasto-categoria');
+  if (sel) {
+    const prev = sel.value;
+    sel.innerHTML = getCategoriaOptions(prev);
+  }
 }
 // ═══════════ SUGGESTIONS ═══════════
 function updateClientSuggestions() {
@@ -1959,6 +2002,13 @@ function saveCompra() {
     total: cantidad * precio
   };
   data.compras.push(row);
+  // Auto-agregar proveedor al catálogo si es nuevo
+  if (proveedor && !proveedores.some(p => p.toLowerCase() === proveedor.toLowerCase())) {
+    proveedores.push(proveedor);
+    saveCatalogos();
+    fetch(API_URL + '?action=addProveedor&nombre=' + encodeURIComponent(proveedor)).catch(() => {});
+    updateProveedorSuggestions();
+  }
   save();
   closeModal();
   clearForm('compra');
@@ -2642,7 +2692,7 @@ function quickPago() {
   if (Number(data.clientes[name].saldo) <= 0) return;
   abonoClientName = name;
   abonoSelectedIndexes = new Set();
-  abonoCuenta = 'efectivo';
+  abonoCuenta = cuentas[0] || 'efectivo';
   abonoVentasFiadas = data.ventas.filter(v => v.cliente === name && v.status === 'fiado');
 
   document.getElementById('abono-modal-title').textContent = 'Abono de ' + name;
@@ -2651,10 +2701,8 @@ function quickPago() {
   document.getElementById('abono-monto').value = '';
   document.getElementById('abono-selected-total').textContent = '$0';
 
-  // Reset account buttons
-  document.querySelectorAll('#abono-cuenta-btns .account-btn').forEach((b, i) => {
-    b.classList.toggle('active', i === 0);
-  });
+  // Render botones de cuenta dinámicos desde el catálogo
+  renderCuentaBtns('abono-cuenta-btns', 'setAbonoCuenta', abonoCuenta);
 
   const list = document.getElementById('abono-ventas-list');
 
@@ -2798,7 +2846,25 @@ function calcGastoTotal() {
 
 function renderGastosPage() {
   document.getElementById('gasto-fecha').value = todayStr();
+  // Asegurar que el dropdown de categoría y los botones de cuenta estén poblados
+  const sel = document.getElementById('gasto-categoria');
+  if (sel) sel.innerHTML = getCategoriaOptions(sel.value);
+  renderCuentaBtns('gasto-cuenta-btns', 'setGastoCuenta', currentGastoCuenta);
   renderGastosList();
+}
+
+function onGastoCategoriaChange(sel) {
+  if (sel.value === '__nuevo__') {
+    sel.value = '';
+    const nombre = (prompt('Nueva categoría de gasto:') || '').trim();
+    if (!nombre) return;
+    if (!categoriasGasto.includes(nombre)) {
+      categoriasGasto.push(nombre);
+      saveCatalogos();
+      fetch(API_URL + '?action=addCategoriaGasto&nombre=' + encodeURIComponent(nombre)).catch(() => {});
+    }
+    sel.innerHTML = getCategoriaOptions(nombre);
+  }
 }
 
 function renderGastosList() {
@@ -2828,14 +2894,18 @@ function renderGastosList() {
 
 function saveGasto() {
   const descripcion = document.getElementById('gasto-descripcion').value.trim();
+  const categoriaEl = document.getElementById('gasto-categoria');
+  const categoria = categoriaEl ? categoriaEl.value : '';
   const monto = parseFloat(document.getElementById('gasto-precio').value) || 0;
   if (!descripcion || !monto) return alert('Completa la descripción y el monto');
+  if (!categoria) return alert('Elige una categoría');
 
   const row = {
     id: Date.now(),
     fecha: new Date().toISOString(),
     dia: document.getElementById('gasto-fecha').value || todayStr(),
     descripcion,
+    categoria,
     total: monto,
     cuenta: currentGastoCuenta
   };
@@ -2847,10 +2917,11 @@ function saveGasto() {
 
   // Clear form
   document.getElementById('gasto-descripcion').value = '';
+  if (categoriaEl) categoriaEl.value = '';
   document.getElementById('gasto-precio').value = '';
   document.getElementById('gasto-total-display').textContent = '$0';
-  currentGastoCuenta = 'efectivo';
-  document.querySelectorAll('#gasto-cuenta-btns .account-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+  currentGastoCuenta = cuentas[0] || 'efectivo';
+  renderCuentaBtns('gasto-cuenta-btns', 'setGastoCuenta', currentGastoCuenta);
 
   // Sync to Sheets
   if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
