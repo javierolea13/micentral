@@ -1944,12 +1944,25 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
     </div>
   </div>
 
-  <!-- Mermas -->
+  <!-- Mermas: físicas + comerciales -->
   <div class="insights-section">
     <div class="insight-card-min">
       <div class="ic-head">
-        <div class="ic-title">⚠️ Mermas (pollos ahogados)</div>
-        <span class="ic-tag" id="ins-merma-tag" style="background:var(--red-bg);color:var(--red);border-color:var(--red-border)">0 POLLOS</span>
+        <div class="ic-title">⚠️ Mermas del periodo</div>
+        <span class="ic-tag" id="ins-merma-tag" style="background:var(--red-bg);color:var(--red);border-color:var(--red-border)">$0</span>
+      </div>
+      <!-- Resumen de mermas: físicas + comerciales -->
+      <div class="kpi-mini-grid" style="margin-bottom:14px">
+        <div class="kpi-mini">
+          <div class="kpi-mini-label">FÍSICA (POLLOS)</div>
+          <div class="kpi-mini-value" style="color:var(--red)" id="ins-merma-fisica">$0</div>
+          <div class="kpi-mini-sub" id="ins-merma-fisica-sub">0 pollos</div>
+        </div>
+        <div class="kpi-mini">
+          <div class="kpi-mini-label">COMERCIAL (DESCUENTOS)</div>
+          <div class="kpi-mini-value" style="color:var(--purple)" id="ins-merma-comercial">$0</div>
+          <div class="kpi-mini-sub" id="ins-merma-comercial-sub">0 descuentos</div>
+        </div>
       </div>
       <div id="ins-merma-list"></div>
       <div style="margin-top:14px">
@@ -1988,8 +2001,14 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
       <div id="ticket-abono-history"></div>
     </div>
 
-    <!-- Form para nuevo abono -->
-    <div style="border-top:1px dashed var(--border);padding-top:14px;margin-top:14px">
+    <!-- Tabs: Abono / Descuento -->
+    <div class="modal-tabs" id="ticket-action-tabs" style="margin-top:14px;border-top:1px dashed var(--border);padding-top:14px">
+      <button class="modal-tab active" onclick="setTicketAction('abono')">💵 Abono</button>
+      <button class="modal-tab" onclick="setTicketAction('descuento')">⊖ Descuento</button>
+    </div>
+
+    <!-- Form de abono -->
+    <div id="ticket-action-abono">
       <div class="form-group">
         <label>MONTO DEL ABONO</label>
         <input type="number" id="ticket-abono-monto" placeholder="$0" inputmode="decimal">
@@ -2003,6 +2022,32 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
         <input type="date" id="ticket-abono-fecha">
       </div>
       <button class="btn-submit" onclick="saveTicketAbono()">✅ Registrar abono</button>
+    </div>
+
+    <!-- Form de descuento -->
+    <div id="ticket-action-descuento" style="display:none">
+      <div class="form-group">
+        <label>MONTO DEL DESCUENTO</label>
+        <input type="number" id="ticket-descuento-monto" placeholder="$0" inputmode="decimal">
+      </div>
+      <div class="form-group">
+        <label>MOTIVO</label>
+        <select id="ticket-descuento-motivo">
+          <option value="" disabled selected>Seleccionar...</option>
+          <option value="Pollo golpeado">🤕 Pollo golpeado</option>
+          <option value="Pieza chica">📏 Pieza chica</option>
+          <option value="Mal aspecto">👀 Mal aspecto</option>
+          <option value="Cortesía">🎁 Cortesía / fidelidad</option>
+          <option value="Negociación">🤝 Negociación</option>
+          <option value="Otro">📦 Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>FECHA</label>
+        <input type="date" id="ticket-descuento-fecha">
+      </div>
+      <button class="btn-submit" style="background:var(--purple)" onclick="saveTicketDescuento()">⊖ Aplicar descuento</button>
+      <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px">El descuento reduce lo pendiente del ticket y se contabiliza como merma comercial.</p>
     </div>
   </div>
 </div>
@@ -2344,6 +2389,7 @@ let data = {
   pagos: [],
   gastos: [],
   mermas: [],
+  descuentos: [],
   clientes: {}
 };
 
@@ -2374,6 +2420,7 @@ async function loadFromSheets() {
     data.pagos = result.pagos || [];
     data.gastos = result.gastos || [];
     data.mermas = result.mermas || [];
+    data.descuentos = result.descuentos || [];
     data.clientes = result.clientes || {};
     if (result.productos && result.productos.length > 0) {
       productos = result.productos;
@@ -3164,13 +3211,17 @@ function recalcBalances() {
       .filter(v => v.cliente === name && v._originalStatus === 'fiado')
       .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
-    // 1. Pagos DIRECTOS (con venta_id) van a su ticket específico
+    // 1. Pagos DIRECTOS (con venta_id) + DESCUENTOS van a su ticket específico
     fiadoVentas.forEach(v => {
       const directPaid = data.pagos
         .filter(p => p.cliente === name && String(p.venta_id || '') === String(v.id))
         .reduce((s, p) => s + Number(p.monto || 0), 0);
+      const descuentosTicket = (data.descuentos || [])
+        .filter(d => String(d.venta_id || '') === String(v.id))
+        .reduce((s, d) => s + Number(d.monto || 0), 0);
       v._directPaid = directPaid;
-      if (directPaid >= Number(v.total)) {
+      v._descuentos = descuentosTicket;
+      if ((directPaid + descuentosTicket) >= Number(v.total)) {
         if (v.status !== 'pagado') {
           v.status = 'pagado';
           needsSync = true;
@@ -3186,7 +3237,7 @@ function recalcBalances() {
 
     for (const venta of fiadoVentas) {
       if (venta.status === 'pagado') continue;
-      const remaining = Number(venta.total) - (venta._directPaid || 0);
+      const remaining = Number(venta.total) - (venta._directPaid || 0) - (venta._descuentos || 0);
       if (remaining <= 0) {
         venta.status = 'pagado';
         continue;
@@ -3205,12 +3256,15 @@ function recalcBalances() {
       }
     }
 
-    // 3. Saldo del cliente = deuda total - todos los pagos
+    // 3. Saldo del cliente = deuda total - pagos - descuentos
     const totalDeuda = fiadoVentas.reduce((s, v) => s + Number(v.total), 0);
     const totalPagos = data.pagos
       .filter(p => p.cliente === name)
       .reduce((s, p) => s + Number(p.monto || 0), 0);
-    const newSaldo = Math.max(0, totalDeuda - totalPagos);
+    const totalDescuentosCliente = (data.descuentos || [])
+      .filter(d => d.cliente === name)
+      .reduce((s, d) => s + Number(d.monto || 0), 0);
+    const newSaldo = Math.max(0, totalDeuda - totalPagos - totalDescuentosCliente);
 
     if (data.clientes[name].saldo !== newSaldo) {
       data.clientes[name].saldo = newSaldo;
@@ -3223,14 +3277,26 @@ function recalcBalances() {
 }
 
 // ═══════════ TICKET HELPERS ═══════════
-// Cuánto se ha abonado a un ticket (directo + flotante asignado)
+// Cuánto se ha abonado a un ticket (pagos directos + flotante asignado + descuentos)
 function getTicketPaid(venta) {
+  return Number(venta._directPaid || 0)
+       + Number(venta._floatingPaid || 0)
+       + getTicketDescuentos(venta).reduce((s,d) => s + Number(d.monto||0), 0);
+}
+// Cuánto realmente se cobró (sin contar descuentos) — para métricas de cobranza
+function getTicketCobrado(venta) {
   return Number(venta._directPaid || 0) + Number(venta._floatingPaid || 0);
 }
 // Pagos directos asignados a este ticket (para mostrar historial)
 function getTicketAbonos(venta) {
   return data.pagos
     .filter(p => String(p.venta_id || '') === String(venta.id))
+    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+}
+// Descuentos aplicados a este ticket
+function getTicketDescuentos(venta) {
+  return (data.descuentos || [])
+    .filter(d => String(d.venta_id || '') === String(venta.id))
     .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 }
 
@@ -4508,6 +4574,7 @@ function renderInsightsPage() {
   const pagosR = data.pagos.filter(inRange);
   const gastosR = (data.gastos||[]).filter(inRange);
   const mermasR = (data.mermas||[]).filter(inRange);
+  const descuentosR = (data.descuentos||[]).filter(inRange);
 
   const sumVentas = ventasR.reduce((s,v) => s + Number(v.total||0), 0);
   const sumCompras = comprasR.reduce((s,c) => s + Number(c.total||0), 0);
@@ -4530,8 +4597,8 @@ function renderInsightsPage() {
   // Activity bars (últimos 7 días o periodo)
   renderInsightsWeekBars(ventasR);
 
-  // Mermas list
-  renderInsightsMermas(mermasR);
+  // Mermas list (físicas + comerciales)
+  renderInsightsMermas(mermasR, descuentosR);
 
   // Top clientes
   renderInsightsTopClientes(ventasR, pagosR);
@@ -4638,32 +4705,71 @@ function renderInsightsWeekBars(ventasR) {
   }).join('');
 }
 
-function renderInsightsMermas(mermasR) {
+function renderInsightsMermas(mermasR, descuentosR) {
   const list = document.getElementById('ins-merma-list');
   const tag = document.getElementById('ins-merma-tag');
   if (!list) return;
 
-  const totalQty = mermasR.reduce((s,m) => s + Number(m.cantidad||0), 0);
-  if (tag) tag.textContent = totalQty + ' POLLO' + (totalQty === 1 ? '' : 'S');
+  const totalQtyFisica = mermasR.reduce((s,m) => s + Number(m.cantidad||0), 0);
+  const totalFisica = mermasR.reduce((s,m) => s + Number(m.total||0), 0);
+  const totalComercial = (descuentosR||[]).reduce((s,d) => s + Number(d.monto||0), 0);
+  const totalMerma = totalFisica + totalComercial;
 
-  if (mermasR.length === 0) {
-    list.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:14px 0">Sin mermas registradas en este periodo. ¡Bien!</div>';
+  // Tag total
+  if (tag) tag.textContent = '-' + fmt(totalMerma);
+
+  // KPIs mini
+  const f = document.getElementById('ins-merma-fisica');
+  const fSub = document.getElementById('ins-merma-fisica-sub');
+  if (f) f.textContent = '-' + fmt(totalFisica);
+  if (fSub) fSub.textContent = totalQtyFisica + ' pollo' + (totalQtyFisica === 1 ? '' : 's');
+
+  const c = document.getElementById('ins-merma-comercial');
+  const cSub = document.getElementById('ins-merma-comercial-sub');
+  const numDesc = (descuentosR||[]).length;
+  if (c) c.textContent = '-' + fmt(totalComercial);
+  if (cSub) cSub.textContent = numDesc + ' descuento' + (numDesc === 1 ? '' : 's');
+
+  // Combined list (mermas físicas + descuentos)
+  const items = [
+    ...mermasR.map(m => ({ kind: 'fisica', date: m.fecha, dia: m.dia, qty: m.cantidad, motivo: m.motivo, monto: m.total, id: m.id })),
+    ...(descuentosR||[]).map(d => ({ kind: 'comercial', date: d.fecha, dia: d.dia, qty: null, motivo: d.motivo, monto: d.monto, cliente: d.cliente, id: d.id }))
+  ].sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  if (items.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:14px 0">Sin mermas en este periodo. ¡Bien!</div>';
     return;
   }
 
-  const sorted = [...mermasR].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-  list.innerHTML = sorted.map(m => `
-    <div class="merma-row">
-      <div class="merma-left">
-        <div class="merma-icon">🐔</div>
-        <div class="merma-info">
-          <div class="qty">${m.cantidad} pollo${m.cantidad === 1 ? '' : 's'}</div>
-          <div class="motivo">${m.motivo || 'Sin motivo'} · ${formatDate(m.dia)}</div>
+  list.innerHTML = items.map(it => {
+    if (it.kind === 'fisica') {
+      return `
+        <div class="merma-row">
+          <div class="merma-left">
+            <div class="merma-icon">🐔</div>
+            <div class="merma-info">
+              <div class="qty">${it.qty} pollo${it.qty === 1 ? '' : 's'} <span style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-left:4px">FÍSICA</span></div>
+              <div class="motivo">${it.motivo || 'Sin motivo'} · ${formatDate(it.dia)}</div>
+            </div>
+          </div>
+          <div class="merma-amount">-${fmt(Number(it.monto)||0)}</div>
         </div>
-      </div>
-      <div class="merma-amount">-${fmt(Number(m.total)||0)}</div>
-    </div>
-  `).join('');
+      `;
+    } else {
+      return `
+        <div class="merma-row">
+          <div class="merma-left">
+            <div class="merma-icon" style="background:var(--purple-bg);color:var(--purple)">⊖</div>
+            <div class="merma-info">
+              <div class="qty">${it.cliente || 'Cliente'} <span style="font-size:9px;color:var(--purple);text-transform:uppercase;margin-left:4px">DESCUENTO</span></div>
+              <div class="motivo">${it.motivo || 'Sin motivo'} · ${formatDate(it.dia)}</div>
+            </div>
+          </div>
+          <div class="merma-amount" style="color:var(--purple)">-${fmt(Number(it.monto)||0)}</div>
+        </div>
+      `;
+    }
+  }).join('');
 }
 
 function renderInsightsTopClientes(ventasR, pagosR) {
@@ -4722,6 +4828,10 @@ function openTicketAbonoModal(ventaId) {
   document.getElementById('ticket-abono-cliente').textContent =
     `${venta.cliente} · ${formatDate(venta.dia)}`;
 
+  const cobrado = getTicketCobrado(venta);
+  const descuentos = getTicketDescuentos(venta);
+  const totalDescuentos = descuentos.reduce((s,d) => s + Number(d.monto||0), 0);
+
   // Info del ticket
   document.getElementById('ticket-abono-info').innerHTML = `
     <div class="ticket-detail-row">
@@ -4730,42 +4840,80 @@ function openTicketAbonoModal(ventaId) {
     </div>
     <div class="ticket-detail-row">
       <span class="label">Abonado</span>
-      <span class="value green">${fmt(paid)}</span>
+      <span class="value green">${fmt(cobrado)}</span>
     </div>
+    ${totalDescuentos > 0 ? `<div class="ticket-detail-row">
+      <span class="label">Descuentos</span>
+      <span class="value" style="color:var(--purple)">-${fmt(totalDescuentos)}</span>
+    </div>` : ''}
     <div class="ticket-detail-row">
       <span class="label">Pendiente</span>
       <span class="value orange big">${fmt(pending)}</span>
     </div>
     <div class="progress-bar" style="margin-top:10px"><div class="progress-fill" style="width:${pct}%"></div></div>
-    <div style="text-align:right;font-size:11px;color:var(--text3);margin-top:6px">${pct}% pagado</div>
+    <div style="text-align:right;font-size:11px;color:var(--text3);margin-top:6px">${pct}% saldado</div>
   `;
 
-  // Historial de abonos asignados a este ticket
+  // Historial de abonos + descuentos
   const abonos = getTicketAbonos(venta);
   const histEl = document.getElementById('ticket-abono-history');
-  if (abonos.length === 0) {
-    histEl.innerHTML = '<div class="abono-history-empty">Sin abonos parciales en este ticket. Los pagos del cliente sin ticket asignado se aplican automáticamente FIFO.</div>';
+
+  let historyHtml = '';
+  if (abonos.length === 0 && descuentos.length === 0) {
+    historyHtml = '<div class="abono-history-empty">Sin abonos ni descuentos en este ticket.</div>';
   } else {
-    histEl.innerHTML = abonos.map(p => `
-      <div class="abono-history-row">
-        <div class="abono-history-left">
-          <div class="abono-history-icon">💵</div>
-          <div class="abono-history-info">
-            <div class="top">${fmt(Number(p.monto))}</div>
-            <div class="bottom">${(p.cuenta||'efectivo').toUpperCase()} · ${formatDate(p.dia)}</div>
+    abonos.forEach(p => {
+      historyHtml += `
+        <div class="abono-history-row">
+          <div class="abono-history-left">
+            <div class="abono-history-icon">💵</div>
+            <div class="abono-history-info">
+              <div class="top">Abono ${fmt(Number(p.monto))}</div>
+              <div class="bottom">${(p.cuenta||'efectivo').toUpperCase()} · ${formatDate(p.dia)}</div>
+            </div>
           </div>
+          <button class="btn-delete" style="font-size:10px;padding:4px 8px" onclick="event.stopPropagation();deleteTicketAbono('${p.id}')">Eliminar</button>
         </div>
-        <button class="btn-delete" style="font-size:10px;padding:4px 8px" onclick="event.stopPropagation();deleteTicketAbono('${p.id}')">Eliminar</button>
-      </div>
-    `).join('');
+      `;
+    });
+    descuentos.forEach(d => {
+      historyHtml += `
+        <div class="abono-history-row" style="border-color:rgba(167,139,250,0.3)">
+          <div class="abono-history-left">
+            <div class="abono-history-icon" style="background:var(--purple-bg);color:var(--purple)">⊖</div>
+            <div class="abono-history-info">
+              <div class="top">Descuento ${fmt(Number(d.monto))}</div>
+              <div class="bottom">${d.motivo || 'sin motivo'} · ${formatDate(d.dia)}</div>
+            </div>
+          </div>
+          <button class="btn-delete" style="font-size:10px;padding:4px 8px" onclick="event.stopPropagation();deleteTicketDescuento('${d.id}')">Eliminar</button>
+        </div>
+      `;
+    });
   }
+  histEl.innerHTML = historyHtml;
 
   // Form values
   document.getElementById('ticket-abono-monto').value = pending > 0 ? pending : '';
   document.getElementById('ticket-abono-fecha').value = todayStr();
   renderCuentaBtns('ticket-abono-cuenta-btns', 'setTicketAbonoCuenta', currentTicketAbonoCuenta);
+  // Reset descuento form
+  document.getElementById('ticket-descuento-monto').value = '';
+  document.getElementById('ticket-descuento-motivo').value = '';
+  document.getElementById('ticket-descuento-fecha').value = todayStr();
+  setTicketAction('abono');
 
   document.getElementById('ticket-abono-overlay').classList.add('show');
+}
+
+function setTicketAction(action) {
+  document.querySelectorAll('#ticket-action-tabs .modal-tab').forEach(t => t.classList.remove('active'));
+  // Find the right tab
+  const tabs = document.querySelectorAll('#ticket-action-tabs .modal-tab');
+  if (action === 'abono' && tabs[0]) tabs[0].classList.add('active');
+  if (action === 'descuento' && tabs[1]) tabs[1].classList.add('active');
+  document.getElementById('ticket-action-abono').style.display = action === 'abono' ? 'block' : 'none';
+  document.getElementById('ticket-action-descuento').style.display = action === 'descuento' ? 'block' : 'none';
 }
 
 function closeTicketAbonoModal() {
@@ -4820,6 +4968,80 @@ function saveTicketAbono() {
   renderDashboard();
   renderAllTx();
   renderAllClients();
+}
+
+function saveTicketDescuento() {
+  if (!currentTicketAbonoVentaId) return;
+  const venta = data.ventas.find(v => String(v.id) === String(currentTicketAbonoVentaId));
+  if (!venta) return;
+
+  const monto = parseFloat(document.getElementById('ticket-descuento-monto').value) || 0;
+  const motivo = document.getElementById('ticket-descuento-motivo').value;
+  const fecha = document.getElementById('ticket-descuento-fecha').value || todayStr();
+
+  if (!monto || monto <= 0) return alert('Ingresa un monto válido');
+  if (!motivo) return alert('Selecciona el motivo del descuento');
+
+  const row = {
+    id: Date.now(),
+    fecha: new Date().toISOString(),
+    dia: fecha,
+    venta_id: venta.id,
+    cliente: venta.cliente,
+    monto,
+    motivo
+  };
+
+  if (!data.descuentos) data.descuentos = [];
+  data.descuentos.push(row);
+  recalcBalances();
+  save();
+
+  if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+    showSyncIndicator('Guardando descuento...');
+    apiCall('addDescuento', row).then(hideSyncIndicator);
+    apiCall('updateCliente', {
+      nombre: venta.cliente,
+      tipo: data.clientes[venta.cliente].tipo,
+      saldo: data.clientes[venta.cliente].saldo
+    });
+  }
+
+  // Re-abrir el modal con datos actualizados
+  const id = currentTicketAbonoVentaId;
+  closeTicketAbonoModal();
+  openTicketAbonoModal(id);
+  renderAdeudos();
+  renderDashboard();
+  renderAllTx();
+  renderAllClients();
+}
+
+function deleteTicketDescuento(descId) {
+  if (!confirm('¿Eliminar este descuento?')) return;
+  const desc = (data.descuentos||[]).find(d => String(d.id) === String(descId));
+  if (!desc) return;
+  data.descuentos = data.descuentos.filter(d => String(d.id) !== String(descId));
+  recalcBalances();
+  save();
+
+  if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+    fetch(API_URL + '?action=deleteRow&sheet=Descuentos&id=' + descId).catch(() => {});
+    apiCall('updateCliente', {
+      nombre: desc.cliente,
+      tipo: data.clientes[desc.cliente].tipo,
+      saldo: data.clientes[desc.cliente].saldo
+    });
+  }
+
+  if (currentTicketAbonoVentaId) {
+    const id = currentTicketAbonoVentaId;
+    closeTicketAbonoModal();
+    openTicketAbonoModal(id);
+  }
+  renderAdeudos();
+  renderDashboard();
+  renderAllTx();
 }
 
 function deleteTicketAbono(pagoId) {

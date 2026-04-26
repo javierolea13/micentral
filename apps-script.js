@@ -22,6 +22,7 @@
 // - CategoriasGasto: nombre
 // - Cuentas:         nombre
 // - Mermas:          id | fecha | dia | cantidad | motivo | costo_unitario | total
+// - Descuentos:      id | fecha | dia | venta_id | cliente | monto | motivo
 // - Errors:          (se crea automáticamente cuando ocurre un error)
 // ═══════════════════════════════════════════════
 
@@ -38,6 +39,7 @@ function doGet(e) {
         pagos: readSheet(ss, 'Pagos', ['id','fecha','dia','cliente','monto','cuenta','venta_id']),
         gastos: readSheet(ss, 'Gastos', ['id','fecha','dia','descripcion','categoria','total','cuenta']),
         mermas: readSheet(ss, 'Mermas', ['id','fecha','dia','cantidad','motivo','costo_unitario','total']),
+        descuentos: readSheet(ss, 'Descuentos', ['id','fecha','dia','venta_id','cliente','monto','motivo']),
         clientes: readClientes(ss),
         productos: readSimpleList(ss, 'Productos', ['Pollo']),
         proveedores: readSimpleList(ss, 'Proveedores', []),
@@ -92,6 +94,18 @@ function doGet(e) {
       var d = JSON.parse(e.parameter.data);
       var sheet = ss.getSheetByName('Gastos');
       sheet.appendRow([d.id, d.fecha, d.dia, d.descripcion, d.categoria || '', d.total, d.cuenta]);
+      return jsonResponse({success: true});
+    }
+
+    // ── ADD DESCUENTO (merma comercial: pollo golpeado, etc.) ──
+    if (action === 'addDescuento') {
+      var d = JSON.parse(e.parameter.data);
+      var sheet = ss.getSheetByName('Descuentos');
+      if (!sheet) {
+        sheet = ss.insertSheet('Descuentos');
+        sheet.appendRow(['id','fecha','dia','venta_id','cliente','monto','motivo']);
+      }
+      sheet.appendRow([d.id, d.fecha, d.dia, d.venta_id, d.cliente, d.monto, d.motivo || '']);
       return jsonResponse({success: true});
     }
 
