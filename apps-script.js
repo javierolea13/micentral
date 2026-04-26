@@ -23,6 +23,7 @@
 // - Cuentas:         nombre
 // - Mermas:          id | fecha | dia | cantidad | motivo | costo_unitario | total
 // - Descuentos:      id | fecha | dia | venta_id | cliente | monto | motivo
+// - AjustesInventario: id | fecha | dia | producto | cantidad | motivo
 // - Errors:          (se crea automáticamente cuando ocurre un error)
 // ═══════════════════════════════════════════════
 
@@ -40,6 +41,7 @@ function doGet(e) {
         gastos: readSheet(ss, 'Gastos', ['id','fecha','dia','descripcion','categoria','total','cuenta']),
         mermas: readSheet(ss, 'Mermas', ['id','fecha','dia','cantidad','motivo','costo_unitario','total']),
         descuentos: readSheet(ss, 'Descuentos', ['id','fecha','dia','venta_id','cliente','monto','motivo']),
+        ajustes: readSheet(ss, 'AjustesInventario', ['id','fecha','dia','producto','cantidad','motivo']),
         clientes: readClientes(ss),
         productos: readSimpleList(ss, 'Productos', ['Pollo']),
         proveedores: readSimpleList(ss, 'Proveedores', []),
@@ -94,6 +96,18 @@ function doGet(e) {
       var d = JSON.parse(e.parameter.data);
       var sheet = ss.getSheetByName('Gastos');
       sheet.appendRow([d.id, d.fecha, d.dia, d.descripcion, d.categoria || '', d.total, d.cuenta]);
+      return jsonResponse({success: true});
+    }
+
+    // ── ADD AJUSTE INVENTARIO (correcciones manuales de stock) ──
+    if (action === 'addAjuste') {
+      var d = JSON.parse(e.parameter.data);
+      var sheet = ss.getSheetByName('AjustesInventario');
+      if (!sheet) {
+        sheet = ss.insertSheet('AjustesInventario');
+        sheet.appendRow(['id','fecha','dia','producto','cantidad','motivo']);
+      }
+      sheet.appendRow([d.id, d.fecha, d.dia, d.producto, d.cantidad, d.motivo || '']);
       return jsonResponse({success: true});
     }
 

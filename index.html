@@ -369,6 +369,148 @@ body {
   letter-spacing: -0.4px;
 }
 
+/* ─── Inventario page ─── */
+.inv-hero {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px 22px 20px;
+  margin-bottom: 14px;
+  position: relative; overflow: hidden;
+}
+.inv-hero.alert-warn { border-color: var(--orange); }
+.inv-hero.alert-bad { border-color: var(--red); }
+.inv-hero-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px;
+}
+.inv-hero-label {
+  font-size: 11px; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+.inv-stock-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 56px; font-weight: 800;
+  letter-spacing: -2px; line-height: .95;
+  color: var(--text);
+}
+.inv-stock-unit {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; color: var(--text2);
+  font-weight: 500; margin-left: 6px;
+}
+.inv-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; font-weight: 700;
+  padding: 4px 11px; border-radius: 999px;
+  background: var(--green-bg); color: var(--green);
+  white-space: nowrap;
+}
+.inv-pill.warn { background: var(--orange-bg); color: var(--orange); }
+.inv-pill.bad { background: var(--red-bg); color: var(--red); }
+.inv-days-line {
+  font-size: 12px; color: var(--text2);
+  margin-top: 12px;
+}
+.inv-days-line strong { color: var(--text); font-weight: 700; }
+.inv-alert-banner {
+  margin-top: 14px; padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 12px; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+}
+.inv-alert-banner.warn { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+.inv-alert-banner.bad { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+
+.inv-prod-selector {
+  display: flex; gap: 6px; margin-bottom: 12px;
+  overflow-x: auto; padding: 2px;
+}
+.inv-prod-chip {
+  flex-shrink: 0; padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2); font-family: inherit;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+}
+.inv-prod-chip.active {
+  background: var(--green); color: white; border-color: var(--green);
+}
+
+.carga-row {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px; margin-bottom: 8px;
+}
+.carga-row.depleted { opacity: 0.55; }
+.carga-row-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.carga-row-info { display: flex; align-items: center; gap: 10px; }
+.carga-row-icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: var(--chart-bg); color: var(--chart-1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.carga-row-name {
+  font-size: 13px; font-weight: 700; color: var(--text);
+}
+.carga-row-meta {
+  font-size: 11px; color: var(--text3); margin-top: 2px;
+}
+.carga-row-tag {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+  padding: 3px 8px; border-radius: 999px;
+  text-transform: uppercase;
+}
+.carga-row-tag.active { background: var(--green-bg); color: var(--green); }
+.carga-row-tag.depleted { background: var(--surface3); color: var(--text3); }
+.carga-row-foot {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--text2);
+  margin-top: 6px;
+}
+.carga-row-foot strong { color: var(--text); font-weight: 700; }
+
+.ajuste-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.ajuste-row:last-child { border-bottom: none; }
+.ajuste-left { display: flex; align-items: center; gap: 10px; }
+.ajuste-icon {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+.ajuste-icon.plus { background: var(--green-bg); color: var(--green); }
+.ajuste-icon.minus { background: var(--red-bg); color: var(--red); }
+.ajuste-info { font-size: 12px; }
+.ajuste-info .top { font-weight: 700; color: var(--text); }
+.ajuste-info .bottom { font-size: 10px; color: var(--text3); margin-top: 2px; }
+.ajuste-amount {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800; font-size: 14px;
+}
+.ajuste-amount.plus { color: var(--green); }
+.ajuste-amount.minus { color: var(--red); }
+
+.btn-ajuste {
+  width: 100%; padding: 11px 16px; border-radius: 12px;
+  background: var(--green-bg); color: var(--green);
+  border: 1px solid var(--green-border);
+  font-family: inherit; font-weight: 700; font-size: 13px;
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-ajuste:active { transform: scale(0.98); }
+
 /* ─── Adeudos: tickets expandibles ─── */
 .adeudo-group {
   background: var(--surface);
@@ -1593,6 +1735,10 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
       Insights
     </button>
+    <button class="sidebar-item" id="sb-inventario" onclick="switchPage('inventario')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+      Inventario
+    </button>
   </nav>
   <div class="sidebar-divider"></div>
   <div class="sidebar-user">
@@ -1985,6 +2131,109 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
   </div>
 </div>
 
+<!-- ═══════════ PAGE: INVENTARIO ═══════════ -->
+<div id="page-inventario" class="page">
+  <div class="header-stitch">
+    <div>
+      <p class="header-eyebrow">CONTROL DE STOCK</p>
+      <h1>Inventario</h1>
+    </div>
+  </div>
+  <div style="padding: 8px 20px 0;">
+    <!-- Selector de producto -->
+    <div class="inv-prod-selector" id="inv-prod-selector"></div>
+  </div>
+
+  <!-- Hero: stock actual -->
+  <div class="px-section">
+    <div class="inv-hero" id="inv-hero">
+      <div class="inv-hero-row">
+        <div>
+          <div class="inv-hero-label">Stock actual</div>
+          <div>
+            <span class="inv-stock-value" id="inv-stock-value">0</span>
+            <span class="inv-stock-unit" id="inv-stock-unit">pollos</span>
+          </div>
+        </div>
+        <div class="inv-pill" id="inv-pill">— días</div>
+      </div>
+      <div class="inv-days-line" id="inv-days-line"></div>
+      <div id="inv-alert-container"></div>
+    </div>
+  </div>
+
+  <!-- Botón ajuste -->
+  <div class="px-section">
+    <button class="btn-ajuste" onclick="openAjusteModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><path d="M12 5v14M5 12h14"/></svg>
+      Ajuste manual de inventario
+    </button>
+  </div>
+
+  <!-- Cargas con FIFO -->
+  <div class="insights-section">
+    <div class="insight-card-min">
+      <div class="ic-head">
+        <div class="ic-title">📦 Cargas <span style="font-weight:400;color:var(--text3);font-size:11px" id="inv-cargas-count"></span></div>
+      </div>
+      <div id="inv-cargas-list"></div>
+    </div>
+  </div>
+
+  <!-- Ajustes recientes -->
+  <div class="insights-section">
+    <div class="insight-card-min">
+      <div class="ic-head">
+        <div class="ic-title">📋 Ajustes recientes</div>
+      </div>
+      <div id="inv-ajustes-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: AJUSTE INVENTARIO ═══════════ -->
+<div class="modal-overlay" id="ajuste-modal-overlay" onclick="if(event.target===this)closeAjusteModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>📋 Ajuste de inventario</h2>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:16px">Corrige el stock cuando el conteo físico no coincide.</p>
+
+    <div class="form-group">
+      <label>PRODUCTO</label>
+      <select id="ajuste-producto"></select>
+    </div>
+
+    <div class="form-toggle" style="margin-bottom:14px">
+      <button class="toggle-btn active" onclick="setAjusteTipo('mas')" id="ajuste-tipo-mas">＋ Encontrado</button>
+      <button class="toggle-btn" onclick="setAjusteTipo('menos')" id="ajuste-tipo-menos">− Faltante</button>
+    </div>
+
+    <div class="form-group">
+      <label>CANTIDAD</label>
+      <input type="number" id="ajuste-cantidad" placeholder="0" inputmode="numeric">
+    </div>
+
+    <div class="form-group">
+      <label>MOTIVO</label>
+      <select id="ajuste-motivo">
+        <option value="" disabled selected>Seleccionar...</option>
+        <option value="Conteo físico">📊 Conteo físico</option>
+        <option value="Pollo encontrado">🔍 Pollo encontrado</option>
+        <option value="Robo / pérdida">🚨 Robo / pérdida</option>
+        <option value="Error de captura">✏️ Error de captura</option>
+        <option value="Otro">📦 Otro</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>FECHA</label>
+      <input type="date" id="ajuste-fecha">
+    </div>
+
+    <button class="btn-submit" onclick="saveAjuste()">✅ Registrar ajuste</button>
+  </div>
+</div>
+
 <!-- ═══════════ MODAL: TICKET DETAIL (abonos por ticket) ═══════════ -->
 <div class="modal-overlay" id="ticket-abono-overlay" onclick="if(event.target===this)closeTicketAbonoModal()">
   <div class="modal" style="max-height:85dvh">
@@ -2116,6 +2365,10 @@ body.light .bottom-nav { background: rgba(255,255,255,0.95); }
   <button class="nav-item" id="nav-insights" onclick="switchPage('insights')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
     INSIGHTS
+  </button>
+  <button class="nav-item" id="nav-inventario" onclick="switchPage('inventario')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+    INVENTARIO
   </button>
   <button class="nav-item" id="nav-clientes" onclick="switchPage('clientes')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
@@ -2390,6 +2643,7 @@ let data = {
   gastos: [],
   mermas: [],
   descuentos: [],
+  ajustes: [],
   clientes: {}
 };
 
@@ -2421,6 +2675,7 @@ async function loadFromSheets() {
     data.gastos = result.gastos || [];
     data.mermas = result.mermas || [];
     data.descuentos = result.descuentos || [];
+    data.ajustes = result.ajustes || [];
     data.clientes = result.clientes || {};
     if (result.productos && result.productos.length > 0) {
       productos = result.productos;
@@ -2855,6 +3110,7 @@ function switchPage(page) {
   if (page === 'clientes') renderAllClients();
   if (page === 'adeudos') renderAdeudos();
   if (page === 'insights') renderInsightsPage();
+  if (page === 'inventario') renderInventarioPage();
 }
 
 // Pintar el usuario actual en el sidebar al cargar
@@ -5075,6 +5331,280 @@ function deleteTicketAbono(pagoId) {
   renderAdeudos();
   renderDashboard();
   renderAllTx();
+}
+
+// ═══════════ INVENTARIO PAGE ═══════════
+let inventarioProducto = 'Pollo';
+
+function getStockProducto(producto) {
+  const lower = String(producto).toLowerCase();
+  const isPollo = lower.includes('pollo');
+
+  const compradoTotal = data.compras
+    .filter(c => String(c.producto || '').toLowerCase() === lower)
+    .reduce((s, c) => s + Number(c.cantidad || 0), 0);
+
+  const vendidoTotal = data.ventas
+    .filter(v => String(v.producto || '').toLowerCase() === lower)
+    .reduce((s, v) => s + Number(v.cantidad || 0), 0);
+
+  const mermaTotal = isPollo
+    ? (data.mermas || []).reduce((s, m) => s + Number(m.cantidad || 0), 0)
+    : 0;
+
+  const ajusteTotal = (data.ajustes || [])
+    .filter(a => String(a.producto || '').toLowerCase() === lower)
+    .reduce((s, a) => s + Number(a.cantidad || 0), 0);
+
+  return {
+    comprado: compradoTotal,
+    vendido: vendidoTotal,
+    merma: mermaTotal,
+    ajustes: ajusteTotal,
+    stock: compradoTotal - vendidoTotal - mermaTotal + ajusteTotal,
+    isPollo
+  };
+}
+
+// Calcula consumo promedio diario (últimos 7 días) en unidades
+function getAvgDailyConsumption(producto) {
+  const lower = String(producto).toLowerCase();
+  const isPollo = lower.includes('pollo');
+  const now = new Date(); now.setHours(0,0,0,0);
+  const sevenDaysAgo = new Date(now); sevenDaysAgo.setDate(now.getDate() - 6);
+
+  let total = 0;
+  data.ventas.forEach(v => {
+    if (String(v.producto || '').toLowerCase() !== lower) return;
+    const d = getTxDate(v); if (!d) return;
+    if (d >= sevenDaysAgo && d <= now) total += Number(v.cantidad || 0);
+  });
+  if (isPollo) {
+    (data.mermas || []).forEach(m => {
+      const d = getTxDate(m); if (!d) return;
+      if (d >= sevenDaysAgo && d <= now) total += Number(m.cantidad || 0);
+    });
+  }
+  return total / 7;
+}
+
+// Calcula cargas FIFO con saldo restante por consumo
+function getCargasFIFO(producto) {
+  const lower = String(producto).toLowerCase();
+  const isPollo = lower.includes('pollo');
+
+  const cargas = data.compras
+    .filter(c => String(c.producto || '').toLowerCase() === lower)
+    .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
+    .map(c => ({
+      ...c,
+      _qty: Number(c.cantidad || 0),
+      _consumed: 0,
+      _remaining: Number(c.cantidad || 0)
+    }));
+
+  // Total a descontar: ventas + mermas (pollo) - ajustes (positivos suman, negativos restan)
+  const vendidoTotal = data.ventas
+    .filter(v => String(v.producto || '').toLowerCase() === lower)
+    .reduce((s, v) => s + Number(v.cantidad || 0), 0);
+  const mermaTotal = isPollo
+    ? (data.mermas || []).reduce((s, m) => s + Number(m.cantidad || 0), 0)
+    : 0;
+  const ajusteTotal = (data.ajustes || [])
+    .filter(a => String(a.producto || '').toLowerCase() === lower)
+    .reduce((s, a) => s + Number(a.cantidad || 0), 0);
+
+  let toConsume = vendidoTotal + mermaTotal - ajusteTotal;
+  if (toConsume < 0) toConsume = 0;
+
+  // Aplicar FIFO
+  for (const carga of cargas) {
+    if (toConsume <= 0) break;
+    if (toConsume >= carga._qty) {
+      carga._consumed = carga._qty;
+      carga._remaining = 0;
+      toConsume -= carga._qty;
+    } else {
+      carga._consumed = toConsume;
+      carga._remaining = carga._qty - toConsume;
+      toConsume = 0;
+    }
+  }
+  return cargas;
+}
+
+function renderInventarioPage() {
+  // Productos disponibles: del catálogo, ordenados con Pollo primero
+  const prodsRaw = (productos || []).filter(p => p);
+  const prods = ['Pollo', ...prodsRaw.filter(p => p.toLowerCase() !== 'pollo')];
+  if (!prods.includes(inventarioProducto) && prods.length > 0) inventarioProducto = prods[0];
+
+  // Selector de producto
+  const sel = document.getElementById('inv-prod-selector');
+  if (sel) {
+    sel.innerHTML = prods.map(p =>
+      `<button class="inv-prod-chip${p === inventarioProducto ? ' active' : ''}" onclick="selectInventarioProducto('${p.replace(/'/g,"\\'")}')">${p}</button>`
+    ).join('');
+  }
+
+  const stats = getStockProducto(inventarioProducto);
+  const avgDaily = getAvgDailyConsumption(inventarioProducto);
+  const dias = avgDaily > 0 ? stats.stock / avgDaily : null;
+
+  // Hero
+  document.getElementById('inv-stock-value').textContent = stats.stock;
+  document.getElementById('inv-stock-unit').textContent = inventarioProducto.toLowerCase() + (stats.stock === 1 ? '' : 's');
+  const hero = document.getElementById('inv-hero');
+  const pill = document.getElementById('inv-pill');
+  const alertBox = document.getElementById('inv-alert-container');
+  const daysLine = document.getElementById('inv-days-line');
+
+  hero.classList.remove('alert-warn','alert-bad');
+  pill.classList.remove('warn','bad');
+  alertBox.innerHTML = '';
+
+  if (avgDaily === 0 || dias === null) {
+    pill.textContent = 'sin datos';
+    daysLine.innerHTML = `Sin ventas en los últimos 7 días para estimar duración.`;
+  } else {
+    const diasRound = dias.toFixed(1);
+    pill.innerHTML = `⏱️ ${diasRound} día${diasRound === '1.0' ? '' : 's'}`;
+    daysLine.innerHTML = `Promedio: <strong>${avgDaily.toFixed(1)}/día</strong> · te alcanza para <strong>~${diasRound} días</strong>`;
+    if (dias < 2) {
+      hero.classList.add('alert-bad');
+      pill.classList.add('bad');
+      alertBox.innerHTML = `<div class="inv-alert-banner bad">🚨 Stock crítico — haz pedido ya</div>`;
+    } else if (dias < 4) {
+      hero.classList.add('alert-warn');
+      pill.classList.add('warn');
+      alertBox.innerHTML = `<div class="inv-alert-banner warn">⚠️ Stock bajo — considera hacer pedido pronto</div>`;
+    }
+  }
+
+  // Cargas FIFO
+  const cargas = getCargasFIFO(inventarioProducto);
+  const activas = cargas.filter(c => c._remaining > 0);
+  const cnt = document.getElementById('inv-cargas-count');
+  if (cnt) cnt.textContent = `· ${activas.length} activa${activas.length === 1 ? '' : 's'}, ${cargas.length} total`;
+
+  const cargasList = document.getElementById('inv-cargas-list');
+  if (cargas.length === 0) {
+    cargasList.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:14px 0">Sin cargas registradas para este producto</div>';
+  } else {
+    // Mostrar más recientes primero
+    const sorted = [...cargas].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+    cargasList.innerHTML = sorted.map(c => {
+      const isDepleted = c._remaining <= 0;
+      const pct = c._qty > 0 ? Math.round((c._remaining / c._qty) * 100) : 0;
+      return `<div class="carga-row${isDepleted ? ' depleted' : ''}">
+        <div class="carga-row-top">
+          <div class="carga-row-info">
+            <div class="carga-row-icon">🚚</div>
+            <div>
+              <div class="carga-row-name">${c.proveedor || 'Sin proveedor'}</div>
+              <div class="carga-row-meta">${formatDate(c.dia)} · ${c._qty} unidades · ${fmt(Number(c.total||0))}</div>
+            </div>
+          </div>
+          <span class="carga-row-tag ${isDepleted ? 'depleted' : 'active'}">${isDepleted ? 'AGOTADA' : 'ACTIVA'}</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill${pct < 30 ? ' bad' : pct < 70 ? ' warn' : ''}" style="width:${pct}%"></div></div>
+        <div class="carga-row-foot">
+          <span>Restante <strong>${c._remaining}</strong> de ${c._qty}</span>
+          <span>${pct}%</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Ajustes recientes (todos productos, últimos 10)
+  const ajustes = [...(data.ajustes || [])]
+    .filter(a => String(a.producto || '').toLowerCase() === String(inventarioProducto).toLowerCase())
+    .sort((a,b) => new Date(b.fecha) - new Date(a.fecha))
+    .slice(0, 10);
+  const ajustesList = document.getElementById('inv-ajustes-list');
+  if (ajustes.length === 0) {
+    ajustesList.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:14px 0">Sin ajustes para este producto</div>';
+  } else {
+    ajustesList.innerHTML = ajustes.map(a => {
+      const qty = Number(a.cantidad);
+      const isPositive = qty >= 0;
+      return `<div class="ajuste-row">
+        <div class="ajuste-left">
+          <div class="ajuste-icon ${isPositive ? 'plus' : 'minus'}">${isPositive ? '＋' : '−'}</div>
+          <div class="ajuste-info">
+            <div class="top">${isPositive ? '+' : ''}${qty} ${a.producto.toLowerCase()}${Math.abs(qty) === 1 ? '' : 's'}</div>
+            <div class="bottom">${a.motivo || 'Sin motivo'} · ${formatDate(a.dia)}</div>
+          </div>
+        </div>
+        <div class="ajuste-amount ${isPositive ? 'plus' : 'minus'}">${isPositive ? '+' : ''}${qty}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function selectInventarioProducto(p) {
+  inventarioProducto = p;
+  renderInventarioPage();
+}
+
+// ═══════════ AJUSTE MODAL ═══════════
+let ajusteTipo = 'mas';
+
+function openAjusteModal() {
+  // Llenar select de productos
+  const prodsRaw = (productos || []).filter(p => p);
+  const prods = ['Pollo', ...prodsRaw.filter(p => p.toLowerCase() !== 'pollo')];
+  const sel = document.getElementById('ajuste-producto');
+  sel.innerHTML = prods.map(p => `<option value="${p}"${p === inventarioProducto ? ' selected' : ''}>${p}</option>`).join('');
+
+  document.getElementById('ajuste-cantidad').value = '';
+  document.getElementById('ajuste-motivo').value = '';
+  document.getElementById('ajuste-fecha').value = todayStr();
+  setAjusteTipo('mas');
+  document.getElementById('ajuste-modal-overlay').classList.add('show');
+}
+
+function closeAjusteModal() {
+  document.getElementById('ajuste-modal-overlay').classList.remove('show');
+}
+
+function setAjusteTipo(tipo) {
+  ajusteTipo = tipo;
+  document.getElementById('ajuste-tipo-mas').classList.toggle('active', tipo === 'mas');
+  document.getElementById('ajuste-tipo-menos').classList.toggle('active', tipo === 'menos');
+}
+
+function saveAjuste() {
+  const producto = document.getElementById('ajuste-producto').value;
+  const cantidad = parseInt(document.getElementById('ajuste-cantidad').value) || 0;
+  const motivo = document.getElementById('ajuste-motivo').value;
+  const fecha = document.getElementById('ajuste-fecha').value || todayStr();
+
+  if (!producto) return alert('Selecciona un producto');
+  if (!cantidad) return alert('Ingresa una cantidad');
+  if (!motivo) return alert('Selecciona el motivo');
+
+  const signedQty = ajusteTipo === 'mas' ? Math.abs(cantidad) : -Math.abs(cantidad);
+
+  const row = {
+    id: Date.now(),
+    fecha: new Date().toISOString(),
+    dia: fecha,
+    producto,
+    cantidad: signedQty,
+    motivo
+  };
+
+  if (!data.ajustes) data.ajustes = [];
+  data.ajustes.push(row);
+  save();
+  closeAjusteModal();
+  renderInventarioPage();
+
+  if (API_URL !== 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+    showSyncIndicator('Guardando ajuste...');
+    apiCall('addAjuste', row).then(hideSyncIndicator);
+  }
 }
 
 // ═══════════ MERMA MODAL ═══════════
